@@ -17,6 +17,13 @@ function getRowMissingNums(grid, rowNum) {
   return nums.filter(n => !grid[rowNum].includes(n))
 }
 
+function getRowMissingCells(grid, rowNum) {
+  return grid[rowNum]
+    .map((num, index) => ({ num, index }))
+    .filter(({ num, _ }) => num === EMPTY_CELL)
+    .map(({ _, index }) => index)
+}
+
 function columnIsGood(grid, columnNum) {
   return (
     grid
@@ -62,8 +69,17 @@ function getBoxMissingNums(grid, topLeftRowNum, topLeftColumnNum) {
   )
 }
 
-// function fillInObviousRows(grid) {
-//   const
-// }
+function fillInObviousRows(grid) {
+  for (let i = 0; i < grid.length; i++) {
+    const missingNums = getRowMissingNums(grid, i)
+    const missingCells = getRowMissingCells(grid, i)
 
-console.log(getBoxMissingNums(startingGrid, 3,0))
+    // for each missing number, cycle through all the columns where row is missing a cell
+    // if all other columns contain the number, then can fill in the cell.
+    // Do the same for boxes. Keep looping through until you go through every row without filling in a cell.
+    // Then do same thing for columns, then boxes.
+    missingNums.forEach(n => {})
+  }
+}
+
+console.log(getRowMissingCells(startingGrid, 0))
