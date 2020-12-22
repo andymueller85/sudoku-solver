@@ -13,8 +13,12 @@ function rowIsGood(grid, rowNum) {
   return grid[rowNum].every(c => c.locked)
 }
 
+function getRowLockedNums(grid, rowNum) {
+  return grid[rowNum].filter(({ locked }) => locked).map(({ value }) => value)
+}
+
 function getRowMissingNums(grid, rowNum) {
-  return possibleNums.filter(n => !grid[rowNum].map(c => c.value).includes(n))
+  return possibleNums.filter(n => !getRowLockedNums(grid, rowNum).includes(n))
 }
 
 function getRowMissingCells(grid, rowNum) {
@@ -36,9 +40,9 @@ function getColumnLockedNums(grid, columnNum) {
 }
 
 function getColumnMissingNums(grid, columnNum) {
-  const lockedNums = getColumnLockedNums(grid, columnNum)
-
-  return possibleNums.filter(n => !lockedNums.includes(n))
+  return possibleNums.filter(
+    n => !getColumnLockedNums(grid, columnNum).includes(n)
+  )
 }
 
 function getColumnMissingCells(grid, columnNum) {
@@ -67,15 +71,18 @@ function boxIsGood(grid, topLeftRowNum, topLeftColumnNum) {
     .every(({ locked }) => locked)
 }
 
+function getBoxLockedNums(grid, topLeftRowNum, topLeftColumnNum) {
+  return grid
+    .slice(topLeftRowNum, topLeftRowNum + 3)
+    .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
+    .flat()
+    .filter(({ locked }) => locked)
+    .map(({ value }) => value)
+}
+
 function getBoxMissingNums(grid, topLeftRowNum, topLeftColumnNum) {
   return possibleNums.filter(
-    n =>
-      !grid
-        .slice(topLeftRowNum, topLeftRowNum + 3)
-        .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
-        .flat()
-        .map(({ value }) => value)
-        .includes(n)
+    n => !getBoxLockedNums(grid, topLeftRowNum, topLeftColumnNum).includes(n)
   )
 }
 
@@ -120,6 +127,16 @@ function lowHangingFruit(grid) {
   return grid
 }
 
+function printGrid(grid) {
+  const separator = '  |  '
+  console.log('-'.repeat((GRID_SIZE - 1) * separator.length + GRID_SIZE))
+  for (let row = 0; row < GRID_SIZE; row++) {
+    const logStr = newGrid[row].map(c => c.value).join(separator)
+    console.log(logStr)
+    console.log('-'.repeat(logStr.length))
+  }
+}
+
 const newGrid = lowHangingFruit(startingGrid)
 
-console.log(newGrid)
+printGrid(newGrid)
