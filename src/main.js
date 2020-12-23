@@ -9,8 +9,23 @@ const startingGrid = require('fs')
 
 const possibleNums = '123456789'.split('')
 
-function rowIsGood(grid, rowNum) {
+function rowIsComplete(grid, rowNum) {
   return grid[rowNum].every(c => c.locked)
+}
+
+function rowIsValid(grid, rowNum) {
+  return (
+    JSON.stringify(
+      [
+        ...getRowLockedNums(grid, rowNum),
+        ...getRowMissingNums(grid, rowNum)
+      ].sort()
+    ) === JSON.stringify(possibleNums)
+  )
+}
+
+function everyRowIsValid(grid) {
+  return grid.every((_, i) => rowIsValid(grid, i))
 }
 
 function getRowLockedNums(grid, rowNum) {
@@ -28,8 +43,26 @@ function getRowMissingCells(grid, rowNum) {
     .map(({ index }) => index)
 }
 
-function columnIsGood(grid, columnNum) {
+function columnIsComplete(grid, columnNum) {
   return grid.map(r => r[columnNum]).every(c => c.locked)
+}
+
+function columnIsValid(grid, colNum) {
+  return (
+    JSON.stringify(
+      [
+        ...getColumnLockedNums(grid, colNum),
+        ...getColumnMissingNums(grid, colNum)
+      ].sort()
+    ) === JSON.stringify(possibleNums)
+  )
+}
+
+function everyColumnIsValid(grid) {
+  for (let col = 0; col < GRID_SIZE; col++) {
+    if (!columnIsValid(grid, col)) return false
+  }
+  return true
 }
 
 function getColumnLockedNums(grid, columnNum) {
@@ -63,12 +96,40 @@ function getKnownCells(grid) {
   return knownCells
 }
 
-function boxIsGood(grid, topLeftRowNum, topLeftColumnNum) {
+function boxIsComplete(grid, topLeftRowNum, topLeftColumnNum) {
   return grid
     .slice(topLeftRowNum, topLeftRowNum + 3)
     .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
     .flat()
     .every(({ locked }) => locked)
+}
+
+function boxIsValid(grid, topLeftRowNum, topLeftColumnNum) {
+  return (
+    JSON.stringify(
+      [
+        ...getBoxLockedNums(grid, topLeftRowNum, topLeftColumnNum),
+        ...getBoxMissingNums(grid, topLeftRowNum, topLeftColumnNum)
+      ].sort()
+    ) === JSON.stringify(possibleNums)
+  )
+}
+
+function everyBoxIsValid(grid) {
+  for (let r = 0; r < GRID_SIZE; r += 3) {
+    for (let c = 0; c < GRID_SIZE; c += 3) {
+      if (!boxIsValid(grid, r, c)) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+function gridIsValid(grid) {
+  return (
+    everyRowIsValid(grid) && everyColumnIsValid(grid) && everyBoxIsValid(grid)
+  )
 }
 
 function getBoxLockedNums(grid, topLeftRowNum, topLeftColumnNum) {
@@ -96,13 +157,20 @@ function getBoxMissingCells(grid, topLeftRowNum, topLeftColumnNum) {
     .map(({ index }) => index)
 }
 
-function cellCanBeDeterminedForRow(grid, col, num, rowEmptyCells) {
+function cellCanBeDeterminedForRow(grid, rowNum, colNum, num, rowEmptyCells) {
+  const rowMissingNums = getRowMissingNums(grid, rowNum)
   return (
-    rowEmptyCells.length === 1 ||
-    (!getColumnLockedNums(grid, col).includes(num) &&
+    (rowMissingNums.length === 1 && rowMissingNums[0] === num) ||
+    (!getColumnLockedNums(grid, colNum).includes(num) &&
       rowEmptyCells
-        .filter(cell => cell !== col)
-        .every(c => getColumnLockedNums(grid, c).includes(num)))
+        .filter(cell => cell !== colNum)
+        .every(c => getColumnLockedNums(grid, c).includes(num)) &&
+      // AND box doesn't already have it
+      !getBoxLockedNums(
+        grid,
+        rowNum - (rowNum % 3),
+        colNum - (colNum % 3)
+      ).includes(num))
   )
 }
 
@@ -110,7 +178,7 @@ function fillRows(grid) {
   for (let row = 0; row < grid.length; row++) {
     getRowMissingNums(grid, row).forEach(n => {
       getRowMissingCells(grid, row).forEach((col, _, missingCellsArray) => {
-        if (cellCanBeDeterminedForRow(grid, col, n, missingCellsArray)) {
+        if (cellCanBeDeterminedForRow(grid, row, col, n, missingCellsArray)) {
           grid[row][col] = { value: n, locked: true }
         }
       })
@@ -120,13 +188,26 @@ function fillRows(grid) {
   return grid
 }
 
-function cellCanBeDeterminedForColumn(grid, row, num, columnEmptyCells) {
+function cellCanBeDeterminedForColumn(
+  grid,
+  rowNum,
+  colNum,
+  num,
+  columnEmptyCells
+) {
+  const columnMissingNums = getColumnMissingNums(grid, colNum)
   return (
-    columnEmptyCells.length === 1 ||
-    (!getRowLockedNums(grid, row).includes(num) &&
+    (columnMissingNums.length === 1 && columnMissingNums[0] === num) ||
+    (!getRowLockedNums(grid, rowNum).includes(num) &&
       columnEmptyCells
-        .filter(cell => cell !== row)
-        .every(r => getRowLockedNums(grid, r).includes(num)))
+        .filter(cell => cell !== rowNum)
+        .every(r => getRowLockedNums(grid, r).includes(num)) &&
+      // AND box doesn't already have it
+      !getBoxLockedNums(
+        grid,
+        rowNum - (rowNum % 3),
+        colNum - (colNum % 3)
+      ).includes(num))
   )
 }
 
@@ -134,7 +215,9 @@ function fillColumns(grid) {
   for (let col = 0; col < grid[0].length; col++) {
     getColumnMissingNums(grid, col).forEach(n => {
       getColumnMissingCells(grid, col).forEach((row, _, missingCellsArray) => {
-        if (cellCanBeDeterminedForColumn(grid, row, n, missingCellsArray)) {
+        if (
+          cellCanBeDeterminedForColumn(grid, row, col, n, missingCellsArray)
+        ) {
           grid[row][col] = { value: n, locked: true }
         }
       })
@@ -155,27 +238,56 @@ function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
   const curRow = topLeftRow + Math.floor(cell / 3)
   const curColumn = topLeftColumn + (cell % 3)
 
+  const rowNeighborsAreLocked = grid[curRow]
+    .map((c, i) => ({ ...c, i }))
+    .slice(topLeftColumn, topLeftColumn + 3)
+    .filter(c => c.i !== curColumn)
+    .every(c => c.locked)
+
+  const rowNeighborsContainNum = relevantRowNums
+    .filter(r => r !== curRow)
+    .every(r => getRowLockedNums(grid, r).includes(num))
+
+  const columnNeighborsAreLocked = grid
+    .map(r => r[curColumn])
+    .map((c, i) => ({ ...c, i }))
+    .slice(topLeftRow, topLeftRow + 3)
+    .filter(c => c.i !== curRow)
+    .every(c => c.locked)
+
+  const columnNeighborsContainNum = relevantColumnNums
+    .filter(c => c !== curColumn)
+    .every(c => getColumnLockedNums(grid, c).includes(num))
+
+  const boxMissingNums = getBoxMissingNums(grid, topLeftRow, topLeftColumn)
+
   return (
-    getBoxMissingCells(grid, topLeftRow, topLeftColumn).length === 1 ||
+    // this is the only missing number - we're done.
+    (boxMissingNums.length === 1 && boxMissingNums[0] === num) ||
+    // bail if the number is already in the row or column
     (!getRowLockedNums(grid, curRow).includes(num) &&
-      !getColumnLockedNums(grid, curColumn).includesNum &&
-      relevantRowNums
-        .filter(r => r !== curRow)
-        .every(r => getRowLockedNums(grid, r).includes(num)) &&
-      relevantColumnNums
-        .filter(c => c !== curColumn)
-        .every(c => getColumnLockedNums(grid, c).includes(num)))
+      !getColumnLockedNums(grid, curColumn).includes(num) &&
+      // 1. Both other column cells in box are determined and both other complete columns have the number
+      ((columnNeighborsAreLocked && columnNeighborsContainNum) ||
+        // 2. Both other row cells in box are determined and both other complete rows have the number
+        (rowNeighborsAreLocked && rowNeighborsContainNum) ||
+        // Both other complete rows and both other complete columns have the number
+        (rowNeighborsContainNum && columnNeighborsContainNum)))
   )
 }
 
 function fillBoxes(grid) {
-  for (let row = 0; row < grid.length; row += 3) {
-    for (let col = 0; col < grid[0].length; col += 3) {
-      getBoxMissingNums(grid, row, col).forEach(n => {
-        getBoxMissingCells(grid, row, col).forEach(
+  for (let topLeftRow = 0; topLeftRow < grid.length; topLeftRow += 3) {
+    for (let topLeftCol = 0; topLeftCol < grid[0].length; topLeftCol += 3) {
+      getBoxMissingNums(grid, topLeftRow, topLeftCol).forEach(n => {
+        getBoxMissingCells(grid, topLeftRow, topLeftCol).forEach(
           (cell, _, missingCellsArray) => {
-            if (cellCanBeDeterminedForBox(grid, cell, row, col, n)) {
-              grid[row][col] = { value: n, locked: true }
+            if (
+              cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, n)
+            ) {
+              grid[Math.floor(topLeftRow + cell / 3)][
+                topLeftCol + (cell % 3)
+              ] = { value: n, locked: true }
             }
           }
         )
@@ -183,64 +295,75 @@ function fillBoxes(grid) {
     }
   }
 
-  for (let col = 0; col < grid[0].length; col++) {
-    getColumnMissingNums(grid, col).forEach(n => {
-      getColumnMissingCells(grid, col).forEach((row, _, missingCellsArray) => {
-        if (cellCanBeDeterminedForColumn(grid, row, n, missingCellsArray)) {
-          grid[row][col] = { value: n, locked: true }
-        }
-      })
-    })
-  }
-
   return grid
 }
 
 function lowHangingFruit(grid) {
   let newGrid = grid
-  let prevLockedCellCount = 0
-  let lockedCellCount = getKnownCells(newGrid).length
+  // let prevLockedCellCount = 0
+  // let lockedCellCount = getKnownCells(newGrid).length
 
-  while (
-    lockedCellCount > prevLockedCellCount &&
-    getKnownCells(newGrid).length < GRID_SIZE ** 2
-  ) {
+  while (getKnownCells(newGrid).length < GRID_SIZE ** 2) {
     // for each missing number, cycle through all the columns where row is missing a cell
     // if all other columns contain the number, then can fill in the cell.
     // Do the same for boxes. Keep looping through until you go through every row without filling in a cell.
     // Then do same thing for columns, then boxes.z
-    prevLockedCellCount = lockedCellCount
+    // prevLockedCellCount = lockedCellCount
+    newGrid = fillBoxes(newGrid)
     newGrid = fillRows(newGrid)
     newGrid = fillColumns(newGrid)
-    newGrid = fillBoxes(newGrid)
 
-    lockedCellCount = getKnownCells(newGrid.length)
+    if (!gridIsValid(newGrid)) {
+      printGrid(newGrid)
+      throw 'uh-oh'
+    }
+
+    // lockedCellCount = getKnownCells(newGrid.length)
   }
 
-  return grid
+  return newGrid
 }
 
 function printGrid(grid) {
-  const separator = '  |  '
-  const rowBegin = '|  '
-  const rowEnd = '  |'
+  // console.table(grid.map(r => r.map(c => c.value)))
+  const vertSeparator = '|'
+  const innerSeparator = `  ${vertSeparator}  `
+  const rowBegin = `${vertSeparator}  `
+  const rowEnd = `  ${vertSeparator}`
   const pad = rowBegin.length + rowEnd.length
+  const horSeparator = '-'
+  const boxSeparatorVert = String.fromCharCode(parseInt('275A', 16))
+  const boxSeparatorHor = '='
 
-  console.log('-'.repeat((GRID_SIZE - 1) * separator.length + GRID_SIZE + pad))
+  function replaceCharAt(str, i, c) {
+    return str.substring(0, i) + c + str.substring(i + 1)
+  }
+
+  console.log(
+    horSeparator.repeat(
+      (GRID_SIZE - 1) * innerSeparator.length + GRID_SIZE + pad
+    )
+  )
   for (let row = 0; row < GRID_SIZE; row++) {
-    const logStr = grid[row]
+    let logStr = grid[row]
       .map(({ value }) => (value === EMPTY_CELL ? ' ' : value))
-      .join(separator)
+      .join(innerSeparator)
+
+    logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
+    logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
+
     console.log(`${rowBegin}${logStr}${rowEnd}`)
-    console.log('-'.repeat(logStr.length + pad))
+    console.log(
+      ([2, 5].includes(row) ? boxSeparatorHor : horSeparator).repeat(
+        logStr.length + pad
+      )
+    )
   }
 }
 
 console.log('starting boxes:', getKnownCells(startingGrid).length)
 
-const newGrid = lowHangingFruit(startingGrid)
+const processedGrid = lowHangingFruit(startingGrid)
+printGrid(processedGrid)
 
-printGrid(newGrid)
-
-console.log('after first pass:', getKnownCells(newGrid).length)
-
+console.log('after first pass:', getKnownCells(processedGrid).length)
