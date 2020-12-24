@@ -1,15 +1,17 @@
+import fs from 'fs'
+
 const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 
-const startingGrid = require('fs')
+const startingGrid = fs
   .readFileSync('./input.txt', 'utf8')
   .split(/\r?\n/)
   .filter(d => d)
   .map(d => [...d].map(c => ({ value: c, locked: c !== EMPTY_CELL })))
-
+  
 const possibleNums = '123456789'.split('')
 
-function rowIsComplete(grid, rowNum) {
+export function rowIsComplete(grid, rowNum) {
   return grid[rowNum].every(c => c.locked)
 }
 
@@ -165,7 +167,6 @@ function cellCanBeDeterminedForRow(grid, rowNum, colNum, num, rowEmptyCells) {
       rowEmptyCells
         .filter(cell => cell !== colNum)
         .every(c => getColumnLockedNums(grid, c).includes(num)) &&
-      // AND box doesn't already have it
       !getBoxLockedNums(
         grid,
         rowNum - (rowNum % 3),
@@ -202,7 +203,6 @@ function cellCanBeDeterminedForColumn(
       columnEmptyCells
         .filter(cell => cell !== rowNum)
         .every(r => getRowLockedNums(grid, r).includes(num)) &&
-      // AND box doesn't already have it
       !getBoxLockedNums(
         grid,
         rowNum - (rowNum % 3),
@@ -267,9 +267,9 @@ function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
     // bail if the number is already in the row or column
     (!getRowLockedNums(grid, curRow).includes(num) &&
       !getColumnLockedNums(grid, curColumn).includes(num) &&
-      // 1. Both other column cells in box are determined and both other complete columns have the number
+      // Both other column cells in box are determined and both other complete columns have the number
       ((columnNeighborsAreLocked && columnNeighborsContainNum) ||
-        // 2. Both other row cells in box are determined and both other complete rows have the number
+        // Both other row cells in box are determined and both other complete rows have the number
         (rowNeighborsAreLocked && rowNeighborsContainNum) ||
         // Both other complete rows and both other complete columns have the number
         (rowNeighborsContainNum && columnNeighborsContainNum)))
@@ -361,9 +361,13 @@ function printGrid(grid) {
   }
 }
 
-console.log('starting boxes:', getKnownCells(startingGrid).length)
+export function run(){
+  console.log('starting boxes:', getKnownCells(startingGrid).length)
 
-const processedGrid = lowHangingFruit(startingGrid)
-printGrid(processedGrid)
+  const processedGrid = lowHangingFruit(startingGrid)
+  printGrid(processedGrid)
+  
+  console.log('after first pass:', getKnownCells(processedGrid).length)
+}
 
-console.log('after first pass:', getKnownCells(processedGrid).length)
+

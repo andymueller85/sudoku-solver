@@ -5,13 +5,27 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "name": "Launch Program",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/src/main.js"
-    }
+      "program": "${workspaceFolder}/src/index.js",
+      "args": ["-r", "-esm"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Tests",
+      "program": "${workspaceRoot}/node_modules/.bin/jest",
+      "cwd": "${workspaceRoot}",
+      "args": ["--runInBand", "--config", "jest.config.js"],
+      "env": { "NODE_OPTIONS":"--experimental-vm-modules" },
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+      },
+      "console": "integratedTerminal"
+    },
   ]
 }
