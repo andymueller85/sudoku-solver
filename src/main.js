@@ -3,19 +3,19 @@ import fs from 'fs'
 const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 
-const startingGrid = fs
+export const startingGrid = fs
   .readFileSync('./input.txt', 'utf8')
   .split(/\r?\n/)
   .filter(d => d)
   .map(d => [...d].map(c => ({ value: c, locked: c !== EMPTY_CELL })))
   
-const possibleNums = '123456789'.split('')
+export const possibleNums = '123456789'.split('')
 
 export function rowIsComplete(grid, rowNum) {
   return grid[rowNum].every(c => c.locked)
 }
 
-function rowIsValid(grid, rowNum) {
+export function rowIsValid(grid, rowNum) {
   return (
     JSON.stringify(
       [
@@ -26,30 +26,30 @@ function rowIsValid(grid, rowNum) {
   )
 }
 
-function everyRowIsValid(grid) {
+export function everyRowIsValid(grid) {
   return grid.every((_, i) => rowIsValid(grid, i))
 }
 
-function getRowLockedNums(grid, rowNum) {
+export function getRowLockedNums(grid, rowNum) {
   return grid[rowNum].filter(({ locked }) => locked).map(({ value }) => value)
 }
 
-function getRowMissingNums(grid, rowNum) {
+export function getRowMissingNums(grid, rowNum) {
   return possibleNums.filter(n => !getRowLockedNums(grid, rowNum).includes(n))
 }
 
-function getRowMissingCells(grid, rowNum) {
+export function getRowMissingCells(grid, rowNum) {
   return grid[rowNum]
     .map((cell, index) => ({ ...cell, index }))
     .filter(({ value }) => value === EMPTY_CELL)
     .map(({ index }) => index)
 }
 
-function columnIsComplete(grid, columnNum) {
+export function columnIsComplete(grid, columnNum) {
   return grid.map(r => r[columnNum]).every(c => c.locked)
 }
 
-function columnIsValid(grid, colNum) {
+export function columnIsValid(grid, colNum) {
   return (
     JSON.stringify(
       [
@@ -60,27 +60,27 @@ function columnIsValid(grid, colNum) {
   )
 }
 
-function everyColumnIsValid(grid) {
+export function everyColumnIsValid(grid) {
   for (let col = 0; col < GRID_SIZE; col++) {
     if (!columnIsValid(grid, col)) return false
   }
   return true
 }
 
-function getColumnLockedNums(grid, columnNum) {
+export function getColumnLockedNums(grid, columnNum) {
   return grid
     .map(r => r[columnNum])
     .filter(c => c.locked)
     .map(({ value }) => value)
 }
 
-function getColumnMissingNums(grid, columnNum) {
+export function getColumnMissingNums(grid, columnNum) {
   return possibleNums.filter(
     n => !getColumnLockedNums(grid, columnNum).includes(n)
   )
 }
 
-function getColumnMissingCells(grid, columnNum) {
+export function getColumnMissingCells(grid, columnNum) {
   return grid
     .map(r => r[columnNum])
     .map((cell, index) => ({ ...cell, index }))
@@ -324,7 +324,7 @@ function lowHangingFruit(grid) {
   return newGrid
 }
 
-function printGrid(grid) {
+export function printGrid(grid) {
   // console.table(grid.map(r => r.map(c => c.value)))
   const vertSeparator = '|'
   const innerSeparator = `  ${vertSeparator}  `
@@ -364,7 +364,7 @@ function printGrid(grid) {
 export function run(){
   console.log('starting boxes:', getKnownCells(startingGrid).length)
 
-  const processedGrid = lowHangingFruit(startingGrid)
+  const processedGrid = lowHangingFruit([...startingGrid])
   printGrid(processedGrid)
   
   console.log('after first pass:', getKnownCells(processedGrid).length)
