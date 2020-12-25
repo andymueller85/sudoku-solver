@@ -109,7 +109,7 @@ describe('Row Operations', () => {
     test('return false if the box already contains the number', () => {
       expect(fut(grid, 1, 1, '7')).toEqual(false)
     })
-
+    
     test('should return false if the number is already in the row', () => {
       expect(fut(grid, 1, 2, '6'))
     })

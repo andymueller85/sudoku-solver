@@ -27,15 +27,16 @@ export function rowIsValid(grid, rowNum) {
 }
 
 export function everyRowIsValid(grid) {
-  return grid.every((_, i) => rowIsValid(grid, i))
+  return grid.every((_, rowNum) => rowIsValid(grid, rowNum))
 }
 
 export function getRowLockedNums(grid, rowNum) {
-  return grid[rowNum].filter(({ locked }) => locked).map(({ value }) => value)
+  return grid[rowNum].filter(c => c.locked).map(c => c.value)
 }
 
 export function getRowMissingNums(grid, rowNum) {
-  return possibleNums.filter(n => !getRowLockedNums(grid, rowNum).includes(n))
+  const lockedNums = getRowLockedNums(grid, rowNum)
+  return possibleNums.filter(n => !lockedNums.includes(n))
 }
 
 export function getRowMissingCells(grid, rowNum) {
@@ -75,9 +76,8 @@ export function getColumnLockedNums(grid, columnNum) {
 }
 
 export function getColumnMissingNums(grid, columnNum) {
-  return possibleNums.filter(
-    n => !getColumnLockedNums(grid, columnNum).includes(n)
-  )
+  const lockedNums = getColumnLockedNums(grid, columnNum)
+  return possibleNums.filter(n => !lockedNums.includes(n))
 }
 
 export function getColumnMissingCells(grid, columnNum) {
@@ -86,6 +86,18 @@ export function getColumnMissingCells(grid, columnNum) {
     .map((cell, index) => ({ ...cell, index }))
     .filter(({ value }) => value === EMPTY_CELL)
     .map(({ index }) => index)
+}
+
+function getBoxTopLeft(rowOrCol) {
+  return rowOrCol - (rowOrCol % 3)
+}
+
+function getBoxCurRow(topLeftRow, cell) {
+  return topLeftRow + Math.floor(cell / 3)
+}
+
+function getBoxCurColumn(topLeftCol, cell) {
+  return topLeftCol + (cell % 3)
 }
 
 export function boxIsComplete(grid, topLeftRowNum, topLeftColumnNum) {
@@ -128,9 +140,8 @@ export function getBoxLockedNums(grid, topLeftRowNum, topLeftColumnNum) {
 }
 
 export function getBoxMissingNums(grid, topLeftRowNum, topLeftColumnNum) {
-  return possibleNums.filter(
-    n => !getBoxLockedNums(grid, topLeftRowNum, topLeftColumnNum).includes(n)
-  )
+  const lockedNums = getBoxLockedNums(grid, topLeftRowNum, topLeftColumnNum)
+  return possibleNums.filter(n => !lockedNums.includes(n))
 }
 
 export function getBoxMissingCells(grid, topLeftRowNum, topLeftColumnNum) {
@@ -143,6 +154,7 @@ export function getBoxMissingCells(grid, topLeftRowNum, topLeftColumnNum) {
     .map(({ index }) => index)
 }
 
+// TODO: can the cellCanBeDetermined functions be combined?
 export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   return (
@@ -152,24 +164,24 @@ export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
       getRowMissingCells(grid, rowNum)
         .filter(cell => cell !== colNum)
         .every(c => getColumnLockedNums(grid, c).includes(num)) &&
-      !getBoxLockedNums(
+      getBoxMissingNums(
         grid,
-        rowNum - (rowNum % 3),
-        colNum - (colNum % 3)
+        getBoxTopLeft(rowNum),
+        getBoxTopLeft(colNum)
       ).includes(num))
   )
 }
 
 function fillRows(grid) {
-  for (let row = 0; row < grid.length; row++) {
-    getRowMissingNums(grid, row).forEach(n => {
-      getRowMissingCells(grid, row).forEach(col => {
-        if (cellCanBeDeterminedForRow(grid, row, col, n)) {
-          grid[row][col] = { value: n, locked: true }
+  grid.forEach((_, rowNum) => {
+    getRowMissingNums(grid, rowNum).forEach(n => {
+      getRowMissingCells(grid, rowNum).forEach(colNum => {
+        if (cellCanBeDeterminedForRow(grid, rowNum, colNum, n)) {
+          grid[rowNum][colNum] = { value: n, locked: true }
         }
       })
     })
-  }
+  })
 
   return grid
 }
@@ -179,42 +191,39 @@ function cellCanBeDeterminedForColumn(grid, rowNum, colNum, num) {
   return (
     (columnMissingNums.length === 1 && columnMissingNums[0] === num) ||
     (columnMissingNums.includes(num) &&
-      !getRowLockedNums(grid, rowNum).includes(num) &&
+      getRowMissingNums(grid, rowNum).includes(num) &&
       getColumnMissingCells(grid, colNum)
         .filter(cell => cell !== rowNum)
         .every(r => getRowLockedNums(grid, r).includes(num)) &&
-      !getBoxLockedNums(
+      getBoxMissingNums(
         grid,
-        rowNum - (rowNum % 3),
-        colNum - (colNum % 3)
+        getBoxTopLeft(rowNum),
+        getBoxTopLeft(colNum)
       ).includes(num))
   )
 }
 
 function fillColumns(grid) {
-  for (let col = 0; col < grid[0].length; col++) {
-    getColumnMissingNums(grid, col).forEach(n => {
-      getColumnMissingCells(grid, col).forEach(row => {
-        if (cellCanBeDeterminedForColumn(grid, row, col, n)) {
-          grid[row][col] = { value: n, locked: true }
+  grid[0].forEach((_, colNum) => {
+    getColumnMissingNums(grid, colNum).forEach(n => {
+      getColumnMissingCells(grid, colNum).forEach(rowNum => {
+        if (cellCanBeDeterminedForColumn(grid, rowNum, colNum, n)) {
+          grid[rowNum][colNum] = { value: n, locked: true }
         }
       })
     })
-  }
+  })
 
   return grid
 }
 
-function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
-  const relevantRowNums = [topLeftRow, topLeftRow + 1, topLeftRow + 2]
-  const relevantColumnNums = [
-    topLeftColumn,
-    topLeftColumn + 1,
-    topLeftColumn + 2
-  ]
+function getBoxIndexes(topLeftRowOrColumn) {
+  return [topLeftRowOrColumn, topLeftRowOrColumn + 1, topLeftRowOrColumn + 2]
+}
 
-  const curRow = topLeftRow + Math.floor(cell / 3)
-  const curColumn = topLeftColumn + (cell % 3)
+function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
+  const curRow = getBoxCurRow(topLeftRow, cell)
+  const curColumn = getBoxCurColumn(topLeftColumn, cell)
 
   const rowNeighborsAreLocked = grid[curRow]
     .map((c, i) => ({ ...c, i }))
@@ -222,7 +231,7 @@ function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
     .filter(c => c.i !== curColumn)
     .every(c => c.locked)
 
-  const rowNeighborsContainNum = relevantRowNums
+  const rowNeighborsContainNum = getBoxIndexes(topLeftRow)
     .filter(r => r !== curRow)
     .every(r => getRowLockedNums(grid, r).includes(num))
 
@@ -233,7 +242,7 @@ function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
     .filter(c => c.i !== curRow)
     .every(c => c.locked)
 
-  const columnNeighborsContainNum = relevantColumnNums
+  const columnNeighborsContainNum = getBoxIndexes(topLeftColumn)
     .filter(c => c !== curColumn)
     .every(c => getColumnLockedNums(grid, c).includes(num))
 
@@ -242,10 +251,10 @@ function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
   return (
     // this is the only missing number - we're done.
     (boxMissingNums.length === 1 && boxMissingNums[0] === num) ||
-    // bail if the number is already in the row or column
+    // bail if number is already in the box, row, or column
     (boxMissingNums.includes(num) &&
-      !getRowLockedNums(grid, curRow).includes(num) &&
-      !getColumnLockedNums(grid, curColumn).includes(num) &&
+      getRowMissingNums(grid, curRow).includes(num) &&
+      getColumnMissingNums(grid, curColumn).includes(num) &&
       // Both other column cells in box are determined and both other complete columns have the number
       ((columnNeighborsAreLocked && columnNeighborsContainNum) ||
         // Both other row cells in box are determined and both other complete rows have the number
@@ -259,17 +268,13 @@ function fillBoxes(grid) {
   for (let topLeftRow = 0; topLeftRow < grid.length; topLeftRow += 3) {
     for (let topLeftCol = 0; topLeftCol < grid[0].length; topLeftCol += 3) {
       getBoxMissingNums(grid, topLeftRow, topLeftCol).forEach(n => {
-        getBoxMissingCells(grid, topLeftRow, topLeftCol).forEach(
-          (cell, _, missingCellsArray) => {
-            if (
-              cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, n)
-            ) {
-              grid[Math.floor(topLeftRow + cell / 3)][
-                topLeftCol + (cell % 3)
-              ] = { value: n, locked: true }
-            }
-          }
-        )
+        getBoxMissingCells(grid, topLeftRow, topLeftCol).forEach(cell => {
+          const curRow = getBoxCurRow(topLeftRow, cell)
+          const curColumn = getBoxCurColumn(topLeftCol, cell)
+
+          if (cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, n))
+            grid[curRow][curColumn] = { value: n, locked: true }
+        })
       })
     }
   }
@@ -279,11 +284,14 @@ function fillBoxes(grid) {
 
 export function getKnownCells(grid) {
   let knownCells = []
-  for (let i = 0; i < grid.length; i++) {
-    for (let j = 0; j < grid.length; j++) {
-      if (grid[i][j].locked) knownCells.push(i * grid.length + j + 1)
-    }
-  }
+
+  grid.forEach((r, rowNum) => {
+    r.forEach((_, colNum) => {
+      if (grid[rowNum][colNum].locked)
+        knownCells.push(rowNum * grid.length + colNum + 1)
+    })
+  })
+
   return knownCells
 }
 
@@ -330,8 +338,8 @@ export function printGrid(grid) {
   const boxSeparatorVert = String.fromCharCode(parseInt('275A', 16))
   const boxSeparatorHor = '='
 
-  function replaceCharAt(str, i, c) {
-    return str.substring(0, i) + c + str.substring(i + 1)
+  function replaceCharAt(str, i, char) {
+    return str.substring(0, i) + char + str.substring(i + 1)
   }
 
   console.log(
