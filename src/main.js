@@ -283,16 +283,7 @@ function fillBoxes(grid) {
 }
 
 export function getKnownCells(grid) {
-  let knownCells = []
-
-  grid.forEach((r, rowNum) => {
-    r.forEach((_, colNum) => {
-      if (grid[rowNum][colNum].locked)
-        knownCells.push(rowNum * grid.length + colNum + 1)
-    })
-  })
-
-  return knownCells
+  return grid.map(r => r.filter(c => c.locked)).flat()
 }
 
 function gridIsValid(grid) {
