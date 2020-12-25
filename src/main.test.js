@@ -1,33 +1,54 @@
 import { expect, jest } from '@jest/globals'
 import * as main from './main'
 
-const grid = main.startingGrid
+const grid = [...main.startingGrid]
 const allIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-
+const duplicatesInFirstRowGrid = grid.map((r, i) =>
+  i === 0 ? r.map(_ => ({ value: '1', locked: true })) : r
+)
+const firstRowEmptyGrid = grid.map((r, i) =>
+  i === 0 ? r.map(_ => ({ value: '.', locked: false })) : r
+)
+const firstRowCompleteGrid = grid.map((r, i) =>
+  i === 0 ? r.map((_, idx) => ({ value: `${idx + 1}`, locked: true })) : r
+)
+const firstColumnCompleteGrid = grid.map((r, i) => [
+  { value: `${i + 1}`, locked: true },
+  ...r.slice(1)
+])
+const firstColumnEmptyGrid = grid.map(r => [
+  { value: '.', locked: false },
+  ...r.slice(1)
+])
+const duplicatesInFirstColumnGrid = grid.map(r => [
+  { value: '1', locked: true },
+  ...r.slice(1)
+])
+const firstBoxCompleteGrid = grid.map((r, rowI) =>
+  r.map((c, colI) =>
+    rowI < 3 && colI < 3 ? { value: `${rowI * 3 + colI + 1}`, locked: true } : c
+  )
+)
+const firstBoxEmptyGrid = grid.map((r, rowI) =>
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? { value: '.', locked: false } : c))
+)
+const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? { value: '1', locked: true } : c))
+)
 describe('Row Operations', () => {
-  const duplicatesInFirstRowGrid = grid.map((r, i) =>
-    i === 0 ? r.map(_ => ({ value: '1', locked: true })) : r
-  )
-  const firstRowEmptyGrid = grid.map((r, i) =>
-    i === 0 ? r.map(_ => ({ value: '.', locked: false })) : r
-  )
-  const firstRowCompleteGrid = grid.map((r, i) =>
-    i === 0 ? r.map((_, idx) => ({ value: `${idx + 1}`, locked: true })) : r
-  )
-
   describe('rowIsComplete', () => {
     const fut = main.rowIsComplete
 
     test('should return false if not every cell in a row is locked', () => {
-      expect(fut(grid, 0)).toEqual(false)
+      expect(fut(grid, 0)).toBe(false)
     })
 
     test('should return true if every cell in a row is locked', () => {
-      expect(fut(firstRowCompleteGrid, 0)).toEqual(true)
+      expect(fut(firstRowCompleteGrid, 0)).toBe(true)
     })
 
     test('should work for an empty row', () => {
-      expect(fut(firstRowEmptyGrid, 0)).toEqual(false)
+      expect(fut(firstRowEmptyGrid, 0)).toBe(false)
     })
   })
 
@@ -35,11 +56,11 @@ describe('Row Operations', () => {
     const fut = main.rowIsValid
 
     test('should return true if there are no duplicate values in a row', () => {
-      expect(fut(grid, 0)).toEqual(true)
+      expect(fut(grid, 0)).toBe(true)
     })
 
     test('should return false if there are duplicate values in a row', () => {
-      expect(fut(duplicatesInFirstRowGrid, 0)).toEqual(false)
+      expect(fut(duplicatesInFirstRowGrid, 0)).toBe(false)
     })
   })
 
@@ -47,11 +68,11 @@ describe('Row Operations', () => {
     const fut = main.everyRowIsValid
 
     test('should return true if every row in the grid is valid', () => {
-      expect(fut(grid)).toEqual(true)
+      expect(fut(grid)).toBe(true)
     })
 
     test('should return false if any row in the grid is invalid', () => {
-      expect(fut(duplicatesInFirstRowGrid)).toEqual(false)
+      expect(fut(duplicatesInFirstRowGrid)).toBe(false)
     })
   })
 
@@ -105,32 +126,19 @@ describe('Row Operations', () => {
 })
 
 describe('Column Operations', () => {
-  const firstColumnCompleteGrid = grid.map((r, i) => [
-    { value: `${i + 1}`, locked: true },
-    ...r.slice(1)
-  ])
-  const firstColumnEmptyGrid = grid.map(r => [
-    { value: '.', locked: false },
-    ...r.slice(1)
-  ])
-  const duplicatesInFirstColumnGrid = grid.map(r => [
-    { value: '1', locked: true },
-    ...r.slice(1)
-  ])
-
   describe('columnIsComplete', () => {
     const fut = main.columnIsComplete
 
     test('should return false if not every cell in a column is locked', () => {
-      expect(fut(grid, 0)).toEqual(false)
+      expect(fut(grid, 0)).toBe(false)
     })
 
     test('should return true if every cell in a column is locked', () => {
-      expect(fut(firstColumnCompleteGrid, 0)).toEqual(true)
+      expect(fut(firstColumnCompleteGrid, 0)).toBe(true)
     })
 
     test('should work when no cells are locked', () => {
-      expect(fut(firstColumnEmptyGrid, 0)).toEqual(false)
+      expect(fut(firstColumnEmptyGrid, 0)).toBe(false)
     })
   })
 
@@ -138,15 +146,15 @@ describe('Column Operations', () => {
     const fut = main.columnIsValid
 
     test('should return false if there are duplicates in the column', () => {
-      expect(fut(duplicatesInFirstColumnGrid, 0)).toEqual(false)
+      expect(fut(duplicatesInFirstColumnGrid, 0)).toBe(false)
     })
 
     test('should return true if no duplicates in the column', () => {
-      expect(fut(grid, 0)).toEqual(true)
+      expect(fut(grid, 0)).toBe(true)
     })
 
     test('should work for an empty column', () => {
-      expect(fut(firstColumnEmptyGrid, 0)).toEqual(true)
+      expect(fut(firstColumnEmptyGrid, 0)).toBe(true)
     })
   })
 
@@ -154,15 +162,15 @@ describe('Column Operations', () => {
     const fut = main.everyColumnIsValid
 
     test('should return false if not every column is valid', () => {
-      expect(fut(duplicatesInFirstColumnGrid)).toEqual(false)
+      expect(fut(duplicatesInFirstColumnGrid)).toBe(false)
     })
 
     test('should return true if every column is valid', () => {
-      expect(fut(grid)).toEqual(true)
+      expect(fut(grid)).toBe(true)
     })
 
     test('should work with an empty column', () => {
-      expect(fut(firstColumnEmptyGrid)).toEqual(true)
+      expect(fut(firstColumnEmptyGrid)).toBe(true)
     })
   })
 
@@ -216,26 +224,6 @@ describe('Column Operations', () => {
 })
 
 describe('Box Operations', () => {
-  const firstBoxCompleteGrid = grid.map((r, rowI) =>
-    r.map((c, colI) =>
-      rowI < 3 && colI < 3
-        ? { value: `${rowI * 3 + colI + 1}`, locked: true }
-        : c
-    )
-  )
-
-  const firstBoxEmptyGrid = grid.map((r, rowI) =>
-    r.map((c, colI) =>
-      rowI < 3 && colI < 3 ? { value: '.', locked: false } : c
-    )
-  )
-
-  const firstBoxHasDuplicatesGrid = grid.map((r, rowI) =>
-    r.map((c, colI) =>
-      rowI < 3 && colI < 3 ? { value: '1', locked: true } : c
-    )
-  )
-
   describe('getBoxTopLeft - given a row or column, gives the box top left coordinate', () => {
     const fut = main.getBoxTopLeft
 
@@ -294,15 +282,15 @@ describe('Box Operations', () => {
     const fut = main.boxIsComplete
 
     test('should return false if any box elements are missing', () => {
-      expect(fut(grid, 0, 0)).toEqual(false)
+      expect(fut(grid, 0, 0)).toBe(false)
     })
 
     test('should work for box with all elements missing', () => {
-      expect(fut(firstBoxEmptyGrid, 0, 0)).toEqual(false)
+      expect(fut(firstBoxEmptyGrid, 0, 0)).toBe(false)
     })
 
     test('should return true if all box elements are filled', () => {
-      expect(fut(firstBoxCompleteGrid, 0, 0)).toEqual(true)
+      expect(fut(firstBoxCompleteGrid, 0, 0)).toBe(true)
     })
   })
 
@@ -310,15 +298,15 @@ describe('Box Operations', () => {
     const fut = main.boxIsValid
 
     test('should return false if box has repeated values', () => {
-      expect(fut(firstBoxHasDuplicatesGrid, 0, 0)).toEqual(false)
+      expect(fut(duplicatesInFirstBoxGrid, 0, 0)).toBe(false)
     })
 
     test('should return true if box has no repeated values', () => {
-      expect(fut(grid, 0, 0)).toEqual(true)
+      expect(fut(grid, 0, 0)).toBe(true)
     })
 
     test('should work for an empty box', () => {
-      expect(fut(firstBoxEmptyGrid, 0, 0)).toEqual(true)
+      expect(fut(firstBoxEmptyGrid, 0, 0)).toBe(true)
     })
   })
 
@@ -326,15 +314,15 @@ describe('Box Operations', () => {
     const fut = main.everyBoxIsValid
 
     test('should return true if every box is valid', () => {
-      expect(fut(grid)).toEqual(true)
+      expect(fut(grid)).toBe(true)
     })
 
     test('should return false if any box is inalid', () => {
-      expect(fut(firstBoxHasDuplicatesGrid)).toEqual(false)
+      expect(fut(duplicatesInFirstBoxGrid)).toBe(false)
     })
 
     test('should work for empty box', () => {
-      expect(fut(firstBoxEmptyGrid)).toEqual(true)
+      expect(fut(firstBoxEmptyGrid)).toBe(true)
     })
   })
 
@@ -416,7 +404,7 @@ describe('Cell-checking functions', () => {
     test.each([axis.x, axis.y])(
       'should return false if the box already contains the number - %s axis',
       testAxis => {
-        expect(fut(grid, 1, 1, '7', testAxis)).toEqual(false)
+        expect(fut(grid, 1, 1, '7', testAxis)).toBe(false)
       }
     )
 
@@ -426,27 +414,27 @@ describe('Cell-checking functions', () => {
     ])(
       'should return false if the number is already in the current axis - %s axis',
       (testAxis, num) => {
-        expect(fut(grid, 1, 2, num, testAxis)).toEqual(false)
+        expect(fut(grid, 1, 2, num, testAxis)).toBe(false)
       }
     )
 
     test.each([axis.x, axis.y])(
       'should return false if there is a row or column (opposite this one) that does not contain the number - %s axis',
       testAxis => {
-        expect(fut(grid, 2, 0, '5', testAxis)).toEqual(false)
+        expect(fut(grid, 2, 0, '5', testAxis)).toBe(false)
       }
     )
 
     test('should return false if the box already includes the number', () => {
-      expect(fut(grid, 1, 4, '4')).toEqual(false)
+      expect(fut(grid, 1, 4, '4')).toBe(false)
     })
 
     test('should return true if every other empty cell column contains the number - X axis', () => {
-      expect(fut(grid, 4, 0, '7', axis.x)).toEqual(true)
+      expect(fut(grid, 4, 0, '7', axis.x)).toBe(true)
     })
 
     test('should return true if number is only one left for the row', () => {
-      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1', axis.x)).toEqual(true)
+      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1', axis.x)).toBe(true)
     })
 
     test('should return true if number is only one left for the column', () => {
@@ -460,23 +448,78 @@ describe('Cell-checking functions', () => {
     const fut = main.cellCanBeDeterminedForRow
     // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
     test('should return true if number is only one left for the row', () => {
-      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1')).toEqual(true)
+      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1')).toBe(true)
     })
 
     test('should return false if not', () => {
-      expect(fut(gridWithFirstRowOneCellLeft, 1, 4, '1')).toEqual(false)
+      expect(fut(gridWithFirstRowOneCellLeft, 1, 4, '1')).toBe(false)
     })
   })
 
-  describe('cellCanBeDeterminedForRow', () => {
+  describe('cellCanBeDeterminedForColumn', () => {
     const fut = main.cellCanBeDeterminedForColumn
     // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
     test('should return true if number is only one left for the column', () => {
-      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1')).toEqual(true)
+      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1')).toBe(true)
     })
 
     test('should return false if not', () => {
-      expect(fut(gridWithFirstColumnOneCellLeft, 1, 4, '1')).toEqual(false)
+      expect(fut(gridWithFirstColumnOneCellLeft, 1, 4, '1')).toBe(false)
     })
+  })
+
+  describe('Fill methods', () => {
+    const { stringifyGrid, fillRows, fillColumns, fillBoxes, clone } = main
+    describe('fillRows', () => {
+      test('should match snapshot after one pass', () => {
+        expect(stringifyGrid(fillRows(clone(grid)))).toMatchSnapshot()
+      })
+    })
+
+    describe('fillColumns (phil collims?)', () => {
+      test('should match snapshot after one pass', () => {
+        expect(stringifyGrid(fillColumns(clone(grid)))).toMatchSnapshot()
+      })
+    })
+
+    describe('fillBoxes', () => {
+      test('should match snapshot after one pass', () => {
+        expect(stringifyGrid(fillBoxes(clone(grid)))).toMatchSnapshot()
+      })
+    })
+  })
+
+  describe('grid-level checks', () => {
+    describe('getKnownCellCount', () => {
+      test('should return the count of locked cells', () => {
+        expect(main.getKnownCellCount(grid)).toBe(35)
+      })
+    })
+
+    describe('GridIsValid', () => {
+      const { gridIsValid } = main
+      test('should return true when all rows, columns & boxes are valid', () => {
+        expect(main.gridIsValid(grid)).toBe(true)
+      })
+
+      test('should return false if there are duplicates in a row', () => {
+        expect(gridIsValid(duplicatesInFirstRowGrid)).toBe(false)
+      })
+
+      test('should return false if there are duplicates in a column', () => {
+        expect(gridIsValid(duplicatesInFirstColumnGrid)).toBe(false)
+      })
+
+      test('should return false if there are duplicates in a box', () => {
+        expect(gridIsValid(duplicatesInFirstBoxGrid)).toBe(false)
+      })
+    })
+  })
+})
+ 
+describe('lowHangingFruit', () => {
+  const { stringifyGrid, lowHangingFruit, clone } = main
+  test('should match snapshot after processing', () => {
+    expect(stringifyGrid(lowHangingFruit(clone(grid)))).toMatchSnapshot()
   })
 })

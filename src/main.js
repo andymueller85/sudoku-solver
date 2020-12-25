@@ -11,6 +11,10 @@ export const startingGrid = fs
 export const possibleNums = '123456789'.split('')
 export const axis = { x: 'X', y: 'Y' }
 
+export function clone(grid) {
+  return JSON.parse(JSON.stringify(grid))
+}
+
 export function rowIsComplete(grid, rowNum) {
   return grid[rowNum].every(c => c.locked)
 }
@@ -187,7 +191,7 @@ export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
   return checkCellAgainstOtherAxis(grid, rowNum, colNum, num, axis.x)
 }
 
-function fillRows(grid) {
+export function fillRows(grid) {
   grid.forEach((_, rowNum) => {
     getRowMissingNums(grid, rowNum).forEach(n => {
       getRowMissingCells(grid, rowNum).forEach(colNum => {
@@ -202,23 +206,10 @@ function fillRows(grid) {
 }
 
 export function cellCanBeDeterminedForColumn(grid, rowNum, colNum, num) {
-  const columnMissingNums = getColumnMissingNums(grid, colNum)
-  return (
-    (columnMissingNums.length === 1 && columnMissingNums[0] === num) ||
-    (columnMissingNums.includes(num) &&
-      getRowMissingNums(grid, rowNum).includes(num) &&
-      getColumnMissingCells(grid, colNum)
-        .filter(cell => cell !== rowNum)
-        .every(r => getRowLockedNums(grid, r).includes(num)) &&
-      getBoxMissingNums(
-        grid,
-        getBoxTopLeft(rowNum),
-        getBoxTopLeft(colNum)
-      ).includes(num))
-  )
+  return checkCellAgainstOtherAxis(grid, rowNum, colNum, num, axis.y)
 }
 
-function fillColumns(grid) {
+export function fillColumns(grid) {
   grid[0].forEach((_, colNum) => {
     getColumnMissingNums(grid, colNum).forEach(n => {
       getColumnMissingCells(grid, colNum).forEach(rowNum => {
@@ -279,7 +270,7 @@ function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
   )
 }
 
-function fillBoxes(grid) {
+export function fillBoxes(grid) {
   for (let topLeftRow = 0; topLeftRow < grid.length; topLeftRow += 3) {
     for (let topLeftCol = 0; topLeftCol < grid[0].length; topLeftCol += 3) {
       getBoxMissingNums(grid, topLeftRow, topLeftCol).forEach(n => {
@@ -297,22 +288,22 @@ function fillBoxes(grid) {
   return grid
 }
 
-export function getKnownCells(grid) {
-  return grid.map(r => r.filter(c => c.locked)).flat()
+export function getKnownCellCount(grid) {
+  return grid.map(r => r.filter(c => c.locked)).flat().length
 }
 
-function gridIsValid(grid) {
+export function gridIsValid(grid) {
   return (
     everyRowIsValid(grid) && everyColumnIsValid(grid) && everyBoxIsValid(grid)
   )
 }
 
-function lowHangingFruit(grid) {
+export function lowHangingFruit(grid) {
   let newGrid = grid
   // let prevLockedCellCount = 0
-  // let lockedCellCount = getKnownCells(newGrid).length
+  // let lockedCellCount = getKnownCellCount(newGrid)
 
-  while (getKnownCells(newGrid).length < GRID_SIZE ** 2) {
+  while (getKnownCellCount(newGrid) < GRID_SIZE ** 2) {
     // for each missing number, cycle through all the columns where row is missing a cell
     // if all other columns contain the number, then can fill in the cell.
     // Do the same for boxes. Keep looping through until you go through every row without filling in a cell.
@@ -327,14 +318,13 @@ function lowHangingFruit(grid) {
       throw 'uh-oh'
     }
 
-    // lockedCellCount = getKnownCells(newGrid.length)
+    // lockedCellCount = getKnownCellCount(newGrid)
   }
 
   return newGrid
 }
 
-export function printGrid(grid) {
-  // console.table(grid.map(r => r.map(c => c.value)))
+export function stringifyGrid(grid) {
   const vertSeparator = '|'
   const innerSeparator = `  ${vertSeparator}  `
   const rowBegin = `${vertSeparator}  `
@@ -348,11 +338,10 @@ export function printGrid(grid) {
     return str.substring(0, i) + char + str.substring(i + 1)
   }
 
-  console.log(
-    horSeparator.repeat(
-      (GRID_SIZE - 1) * innerSeparator.length + GRID_SIZE + pad
-    )
+  let strGrid = horSeparator.repeat(
+    (GRID_SIZE - 1) * innerSeparator.length + GRID_SIZE + pad
   )
+
   for (let row = 0; row < GRID_SIZE; row++) {
     let logStr = grid[row]
       .map(({ value }) => (value === EMPTY_CELL ? ' ' : value))
@@ -361,20 +350,20 @@ export function printGrid(grid) {
     logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
     logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
 
-    console.log(`${rowBegin}${logStr}${rowEnd}`)
-    console.log(
-      ([2, 5].includes(row) ? boxSeparatorHor : horSeparator).repeat(
-        logStr.length + pad
-      )
+    strGrid += `\n${rowBegin}${logStr}${rowEnd}\n`
+    strGrid += ([2, 5].includes(row) ? boxSeparatorHor : horSeparator).repeat(
+      logStr.length + pad
     )
   }
+
+  return strGrid
 }
 
 export function run() {
-  console.log('starting boxes:', getKnownCells(startingGrid).length)
+  console.log('starting boxes:', getKnownCellCount(startingGrid))
 
-  const processedGrid = lowHangingFruit([...startingGrid])
-  printGrid(processedGrid)
+  const processedGrid = lowHangingFruit(clone(startingGrid))
+  console.log(stringifyGrid(processedGrid))
 
-  console.log('after first pass:', getKnownCells(processedGrid).length)
+  console.log('after first pass:', getKnownCellCount(processedGrid))
 }
