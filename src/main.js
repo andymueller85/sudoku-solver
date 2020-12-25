@@ -8,8 +8,8 @@ export const startingGrid = fs
   .split(/\r?\n/)
   .filter(d => d)
   .map(d => [...d].map(c => ({ value: c, locked: c !== EMPTY_CELL })))
-
 export const possibleNums = '123456789'.split('')
+export const axis = { x: 'X', y: 'Y' }
 
 export function rowIsComplete(grid, rowNum) {
   return grid[rowNum].every(c => c.locked)
@@ -88,15 +88,15 @@ export function getColumnMissingCells(grid, columnNum) {
     .map(({ index }) => index)
 }
 
-function getBoxTopLeft(rowOrCol) {
+export function getBoxTopLeft(rowOrCol) {
   return rowOrCol - (rowOrCol % 3)
 }
 
-function getBoxCurRow(topLeftRow, cell) {
+export function getBoxCurRow(topLeftRow, cell) {
   return topLeftRow + Math.floor(cell / 3)
 }
 
-function getBoxCurColumn(topLeftCol, cell) {
+export function getBoxCurColumn(topLeftCol, cell) {
   return topLeftCol + (cell % 3)
 }
 
@@ -154,22 +154,37 @@ export function getBoxMissingCells(grid, topLeftRowNum, topLeftColumnNum) {
     .map(({ index }) => index)
 }
 
-// TODO: can the cellCanBeDetermined functions be combined?
-export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
+export function checkCellAgainstOtherAxis(grid, rowNum, colNum, num, curAxis) {
   const rowMissingNums = getRowMissingNums(grid, rowNum)
+  const columnMissingNums = getColumnMissingNums(grid, colNum)
+
+  const isXAxis = curAxis === axis.x
+  const curAxisMissingNums = isXAxis ? rowMissingNums : columnMissingNums
+  const otherAxisMissingNums = isXAxis ? columnMissingNums : rowMissingNums
+  const curAxisMissingCellsFn = isXAxis
+    ? getRowMissingCells
+    : getColumnMissingCells
+  const otherAxisLockedNumsFn = isXAxis ? getColumnLockedNums : getRowLockedNums
+  const curAxisIndex = isXAxis ? rowNum : colNum
+  const otherAxisIndex = isXAxis ? colNum : rowNum
+
   return (
-    (rowMissingNums.length === 1 && rowMissingNums[0] === num) ||
-    (rowMissingNums.includes(num) &&
-      getColumnMissingNums(grid, colNum).includes(num) &&
-      getRowMissingCells(grid, rowNum)
-        .filter(cell => cell !== colNum)
-        .every(c => getColumnLockedNums(grid, c).includes(num)) &&
+    (curAxisMissingNums.length === 1 && curAxisMissingNums[0] === num) ||
+    (curAxisMissingNums.includes(num) &&
+      otherAxisMissingNums.includes(num) &&
+      curAxisMissingCellsFn(grid, curAxisIndex)
+        .filter(cell => cell !== otherAxisIndex)
+        .every(v => otherAxisLockedNumsFn(grid, v).includes(num)) &&
       getBoxMissingNums(
         grid,
         getBoxTopLeft(rowNum),
         getBoxTopLeft(colNum)
       ).includes(num))
   )
+}
+
+export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
+  return checkCellAgainstOtherAxis(grid, rowNum, colNum, num, axis.x)
 }
 
 function fillRows(grid) {
@@ -186,7 +201,7 @@ function fillRows(grid) {
   return grid
 }
 
-function cellCanBeDeterminedForColumn(grid, rowNum, colNum, num) {
+export function cellCanBeDeterminedForColumn(grid, rowNum, colNum, num) {
   const columnMissingNums = getColumnMissingNums(grid, colNum)
   return (
     (columnMissingNums.length === 1 && columnMissingNums[0] === num) ||

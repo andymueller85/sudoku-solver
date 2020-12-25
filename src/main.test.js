@@ -1,4 +1,4 @@
-import { expect } from '@jest/globals'
+import { expect, jest } from '@jest/globals'
 import * as main from './main'
 
 const grid = main.startingGrid
@@ -100,47 +100,6 @@ describe('Row Operations', () => {
 
     test('should work for a full row', () => {
       expect(fut(firstRowCompleteGrid, 0)).toEqual([])
-    })
-  })
-
-  describe('cellCanBeDeterminedForRow', () => {
-    const fut = main.cellCanBeDeterminedForRow
-
-    test('return false if the box already contains the number', () => {
-      expect(fut(grid, 1, 1, '7')).toEqual(false)
-    })
-    
-    test('should return false if the number is already in the row', () => {
-      expect(fut(grid, 1, 2, '6'))
-    })
-
-    test('should return false if the number is already in the column', () => {
-      expect(fut(grid, 1, 2, '5')).toEqual(false)
-    })
-
-    test('should return false if there is a column missing cell corresponding column that does not contain the number', () => {
-      expect(fut(grid, 2, 0, '5')).toEqual(false)
-    })
-
-    test('should return false if the box already includes the number', () => {
-      expect(fut(grid, 1, 4, '4')).toEqual(false)
-    })
-
-    test('should return true if every other empty cell column contains the number', () => {
-      expect(fut(grid, 4, 0, '7')).toEqual(true)
-    })
-
-    test('should return true if number is only one left for the row', () => {
-      const gridWithFirstRowOneCellLeft = grid.map((r, rowIndex) =>
-        r.map((c, cIndex) =>
-          rowIndex === 0
-            ? cIndex > 0
-              ? { value: cIndex + 1, locked: true }
-              : { value: '.', locked: false }
-            : c
-        )
-      )
-      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1')).toEqual(true)
     })
   })
 })
@@ -277,6 +236,60 @@ describe('Box Operations', () => {
     )
   )
 
+  describe('getBoxTopLeft - given a row or column, gives the box top left coordinate', () => {
+    const fut = main.getBoxTopLeft
+
+    test.each([
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 3],
+      [4, 3],
+      [5, 3],
+      [6, 6],
+      [7, 6],
+      [8, 6]
+    ])('getBoxTopLeft(%d) === %d', (rowOrCol, expected) => {
+      expect(fut(rowOrCol)).toBe(expected)
+    })
+  })
+
+  describe('getBoxCurRow - given a box top left row and cell #, returns the current row', () => {
+    const fut = main.getBoxCurRow
+
+    test.each([
+      [0, 0, 0],
+      [0, 3, 1],
+      [0, 6, 2],
+      [3, 1, 3],
+      [3, 4, 4],
+      [3, 7, 5],
+      [6, 2, 6],
+      [6, 5, 7],
+      [6, 8, 8]
+    ])('getBoxCurRow(%d, %d) === %d', (topLeftRow, cell, expected) => {
+      expect(fut(topLeftRow, cell)).toBe(expected)
+    })
+  })
+
+  describe('getBoxCurCol - given a box top left column and cell #, returns the current column', () => {
+    const fut = main.getBoxCurColumn
+
+    test.each([
+      [0, 0, 0],
+      [0, 4, 1],
+      [0, 8, 2],
+      [3, 3, 3],
+      [3, 7, 4],
+      [3, 2, 5],
+      [6, 6, 6],
+      [6, 1, 7],
+      [6, 5, 8]
+    ])('getBoxCurColumn(%d, %d) === %d', (topLeftCol, cell, expected) => {
+      expect(fut(topLeftCol, cell)).toBe(expected)
+    })
+  })
+
   describe('boxIsComplete', () => {
     const fut = main.boxIsComplete
 
@@ -370,6 +383,100 @@ describe('Box Operations', () => {
 
     test('should work for a completed box', () => {
       expect(fut(firstBoxCompleteGrid, 0, 0)).toEqual([])
+    })
+  })
+})
+
+describe('Cell-checking functions', () => {
+  const gridWithFirstRowOneCellLeft = grid.map((r, rowIndex) =>
+    r.map((c, cIndex) =>
+      rowIndex === 0
+        ? cIndex > 0
+          ? { value: `${cIndex + 1}`, locked: true }
+          : { value: '.', locked: false }
+        : c
+    )
+  )
+
+  const gridWithFirstColumnOneCellLeft = grid.map((r, rowIndex) =>
+    r.map((c, cIndex) =>
+      cIndex === 0
+        ? rowIndex > 0
+          ? { value: `${rowIndex + 1}`, locked: true }
+          : { value: '.', locked: false }
+        : c
+    )
+  )
+
+  const { axis } = main
+
+  describe('checkCellAgainstOtherAxis', () => {
+    const fut = main.checkCellAgainstOtherAxis
+
+    test.each([axis.x, axis.y])(
+      'should return false if the box already contains the number - %s axis',
+      testAxis => {
+        expect(fut(grid, 1, 1, '7', testAxis)).toEqual(false)
+      }
+    )
+
+    test.each([
+      [axis.x, '6'],
+      [axis.y, '5']
+    ])(
+      'should return false if the number is already in the current axis - %s axis',
+      (testAxis, num) => {
+        expect(fut(grid, 1, 2, num, testAxis)).toEqual(false)
+      }
+    )
+
+    test.each([axis.x, axis.y])(
+      'should return false if there is a row or column (opposite this one) that does not contain the number - %s axis',
+      testAxis => {
+        expect(fut(grid, 2, 0, '5', testAxis)).toEqual(false)
+      }
+    )
+
+    test('should return false if the box already includes the number', () => {
+      expect(fut(grid, 1, 4, '4')).toEqual(false)
+    })
+
+    test('should return true if every other empty cell column contains the number - X axis', () => {
+      expect(fut(grid, 4, 0, '7', axis.x)).toEqual(true)
+    })
+
+    test('should return true if number is only one left for the row', () => {
+      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1', axis.x)).toEqual(true)
+    })
+
+    test('should return true if number is only one left for the column', () => {
+      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1', axis.y)).toEqual(
+        true
+      )
+    })
+  })
+
+  describe('cellCanBeDeterminedForRow', () => {
+    const fut = main.cellCanBeDeterminedForRow
+    // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
+    test('should return true if number is only one left for the row', () => {
+      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1')).toEqual(true)
+    })
+
+    test('should return false if not', () => {
+      expect(fut(gridWithFirstRowOneCellLeft, 1, 4, '1')).toEqual(false)
+    })
+  })
+
+  describe('cellCanBeDeterminedForRow', () => {
+    const fut = main.cellCanBeDeterminedForColumn
+    // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
+    test('should return true if number is only one left for the column', () => {
+      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1')).toEqual(true)
+    })
+
+    test('should return false if not', () => {
+      expect(fut(gridWithFirstColumnOneCellLeft, 1, 4, '1')).toEqual(false)
     })
   })
 })
