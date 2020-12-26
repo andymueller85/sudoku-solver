@@ -523,6 +523,39 @@ describe('Cell-checking functions', () => {
   })
 })
  
+describe('Utilities', () => {
+  describe('getPossibleCellValues', () => {
+    const { getPossibleCellValues } = main
+
+    test.each([
+      [0, 2, '6'.split('')],
+      [1, 4, '157'.split('')],
+      [5, 8, '1258'.split('')],
+      [7, 5, '2478'.split('')]
+    ])(
+      'getPossibleCellValues(grid, %d, %d) === %j',
+      (rowNum, colNum, expected) => {
+        expect(getPossibleCellValues(grid, rowNum, colNum)).toEqual(expected)
+      }
+    )
+  })
+
+  describe('getNextCell', () => {
+    const { getNextCellCoordinates } = main
+    test.each([
+      [0, 0, [0, 1]],
+      [3, 7, [3, 8]],
+      [3, 8, [4, 0]],
+      [8, 8, undefined]
+    ])(
+      'getNextCellCoordinates(grid, %d, %d) === %j',
+      (rowNum, colNum, expected) => {
+        expect(getNextCellCoordinates(grid, rowNum, colNum)).toEqual(expected)
+      }
+    )
+  })
+})
+
 describe('lowHangingFruit', () => {
   const { stringifyGrid, lowHangingFruit } = main
   test('should match snapshot after processing', () => {
