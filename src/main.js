@@ -4,8 +4,9 @@ import lodash from 'lodash'
 const { cloneDeep } = lodash
 const GRID_SIZE = 9
 const EMPTY_CELL = '.'
+const DEBUG = false
 
-const fileInput = fs.readFileSync('./input.txt', 'utf8')
+const fileInput = fs.readFileSync('./input_hard.txt', 'utf8')
 
 export function seedGrid(input) {
   return input
@@ -300,17 +301,32 @@ export function gridIsValid(grid) {
   )
 }
 
+function log(grid, loopCount, msg) {
+  if (DEBUG) {
+    console.log(`Pass ${loopCount} ${msg}`)
+    console.log(`${stringifyGrid(grid)}\n\n`)
+  }
+}
+
 export function lowHangingFruit(grid) {
   let updatedGrid = cloneDeep(grid)
   let prevLockedCellCount = 0
   let lockedCellCount = getKnownCellCount(updatedGrid)
+  let loopCount = 0
 
-  while (lockedCellCount > prevLockedCellCount) {
+  while (
+    lockedCellCount > prevLockedCellCount &&
+    lockedCellCount < GRID_SIZE ** 2
+  ) {
+    loopCount++
     prevLockedCellCount = lockedCellCount
 
     updatedGrid = fillBoxes(updatedGrid)
+    log(updatedGrid, loopCount, '- Boxes')
     updatedGrid = fillRows(updatedGrid)
+    log(updatedGrid, loopCount, '- Rows')
     updatedGrid = fillColumns(updatedGrid)
+    log(updatedGrid, loopCount, '- Columns')
 
     if (!gridIsValid(updatedGrid)) {
       printGrid(updatedGrid)
@@ -360,10 +376,10 @@ export function stringifyGrid(grid) {
 
 export function run() {
   const startingGrid = seedGrid(fileInput)
-  console.log('starting boxes:', getKnownCellCount(startingGrid))
-
   const processedGrid = lowHangingFruit(startingGrid)
-  console.log(stringifyGrid(processedGrid))
 
-  console.log('after first pass:', getKnownCellCount(processedGrid))
+  console.log('After low hanging fruit:')
+  console.log(stringifyGrid(processedGrid))
+  console.log('Starting boxes:', getKnownCellCount(startingGrid))
+  console.log('After low hanging fruit:', getKnownCellCount(processedGrid))
 }

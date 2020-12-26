@@ -40,6 +40,7 @@ const firstBoxEmptyGrid = grid.map((r, rowI) =>
 const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
   r.map((c, colI) => (rowI < 3 && colI < 3 ? { value: '1', locked: true } : c))
 )
+
 describe('Row Operations', () => {
   describe('rowIsComplete', () => {
     const fut = main.rowIsComplete
