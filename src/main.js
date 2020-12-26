@@ -1,19 +1,21 @@
 import fs from 'fs'
+import lodash from 'lodash'
 
+const { cloneDeep } = lodash
 const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 
-export const startingGrid = fs
-  .readFileSync('./input.txt', 'utf8')
-  .split(/\r?\n/)
-  .filter(d => d)
-  .map(d => [...d].map(c => ({ value: c, locked: c !== EMPTY_CELL })))
+const fileInput = fs.readFileSync('./input.txt', 'utf8')
+
+export function seedGrid(input) {
+  return input
+    .split(/\r?\n/)
+    .filter(d => d)
+    .map(d => [...d].map(c => ({ value: c, locked: c !== EMPTY_CELL })))
+}
+
 export const possibleNums = '123456789'.split('')
 export const axis = { x: 'X', y: 'Y' }
-
-export function clone(grid) {
-  return JSON.parse(JSON.stringify(grid))
-}
 
 export function rowIsComplete(grid, rowNum) {
   return grid[rowNum].every(c => c.locked)
@@ -299,29 +301,26 @@ export function gridIsValid(grid) {
 }
 
 export function lowHangingFruit(grid) {
-  let newGrid = grid
-  // let prevLockedCellCount = 0
-  // let lockedCellCount = getKnownCellCount(newGrid)
+  let updatedGrid = cloneDeep(grid)
+  let prevLockedCellCount = 0
+  let lockedCellCount = getKnownCellCount(updatedGrid)
 
-  while (getKnownCellCount(newGrid) < GRID_SIZE ** 2) {
-    // for each missing number, cycle through all the columns where row is missing a cell
-    // if all other columns contain the number, then can fill in the cell.
-    // Do the same for boxes. Keep looping through until you go through every row without filling in a cell.
-    // Then do same thing for columns, then boxes.z
-    // prevLockedCellCount = lockedCellCount
-    newGrid = fillBoxes(newGrid)
-    newGrid = fillRows(newGrid)
-    newGrid = fillColumns(newGrid)
+  while (lockedCellCount > prevLockedCellCount) {
+    prevLockedCellCount = lockedCellCount
 
-    if (!gridIsValid(newGrid)) {
-      printGrid(newGrid)
+    updatedGrid = fillBoxes(updatedGrid)
+    updatedGrid = fillRows(updatedGrid)
+    updatedGrid = fillColumns(updatedGrid)
+
+    if (!gridIsValid(updatedGrid)) {
+      printGrid(updatedGrid)
       throw 'uh-oh'
     }
 
-    // lockedCellCount = getKnownCellCount(newGrid)
+    lockedCellCount = getKnownCellCount(updatedGrid)
   }
 
-  return newGrid
+  return updatedGrid
 }
 
 export function stringifyGrid(grid) {
@@ -360,9 +359,10 @@ export function stringifyGrid(grid) {
 }
 
 export function run() {
+  const startingGrid = seedGrid(fileInput)
   console.log('starting boxes:', getKnownCellCount(startingGrid))
 
-  const processedGrid = lowHangingFruit(clone(startingGrid))
+  const processedGrid = lowHangingFruit(startingGrid)
   console.log(stringifyGrid(processedGrid))
 
   console.log('after first pass:', getKnownCellCount(processedGrid))

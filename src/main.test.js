@@ -1,7 +1,12 @@
-import { expect, jest } from '@jest/globals'
+import fs from 'fs'
+import { expect } from '@jest/globals'
 import * as main from './main'
+import lodash from 'lodash'
 
-const grid = [...main.startingGrid]
+const { cloneDeep } = lodash
+
+const fileInput = fs.readFileSync('./input.txt', 'utf8')
+const grid = main.seedGrid(fileInput)
 const allIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 const duplicatesInFirstRowGrid = grid.map((r, i) =>
   i === 0 ? r.map(_ => ({ value: '1', locked: true })) : r
@@ -469,22 +474,22 @@ describe('Cell-checking functions', () => {
   })
 
   describe('Fill methods', () => {
-    const { stringifyGrid, fillRows, fillColumns, fillBoxes, clone } = main
+    const { stringifyGrid, fillRows, fillColumns, fillBoxes } = main
     describe('fillRows', () => {
       test('should match snapshot after one pass', () => {
-        expect(stringifyGrid(fillRows(clone(grid)))).toMatchSnapshot()
+        expect(stringifyGrid(fillRows(cloneDeep(grid)))).toMatchSnapshot()
       })
     })
 
     describe('fillColumns (phil collims?)', () => {
       test('should match snapshot after one pass', () => {
-        expect(stringifyGrid(fillColumns(clone(grid)))).toMatchSnapshot()
+        expect(stringifyGrid(fillColumns(cloneDeep(grid)))).toMatchSnapshot()
       })
     })
 
     describe('fillBoxes', () => {
       test('should match snapshot after one pass', () => {
-        expect(stringifyGrid(fillBoxes(clone(grid)))).toMatchSnapshot()
+        expect(stringifyGrid(fillBoxes(cloneDeep(grid)))).toMatchSnapshot()
       })
     })
   })
@@ -518,8 +523,8 @@ describe('Cell-checking functions', () => {
 })
  
 describe('lowHangingFruit', () => {
-  const { stringifyGrid, lowHangingFruit, clone } = main
+  const { stringifyGrid, lowHangingFruit } = main
   test('should match snapshot after processing', () => {
-    expect(stringifyGrid(lowHangingFruit(clone(grid)))).toMatchSnapshot()
+    expect(stringifyGrid(lowHangingFruit(cloneDeep(grid)))).toMatchSnapshot()
   })
 })
