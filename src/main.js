@@ -6,7 +6,7 @@ const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 const DEBUG = false
 
-const fileInput = fs.readFileSync('./input_hard.txt', 'utf8')
+const fileInput = fs.readFileSync('./input_very_hard.txt', 'utf8')
 
 export function seedGrid(input) {
   return input
@@ -308,7 +308,7 @@ function log(grid, loopCount, msg) {
   }
 }
 
-export function lowHangingFruit(grid) {
+export function fillAutomaticCells(grid) {
   let updatedGrid = cloneDeep(grid)
   let prevLockedCellCount = 0
   let lockedCellCount = getKnownCellCount(updatedGrid)
@@ -384,14 +384,14 @@ export function gridHasAnyImpossibilities(grid) {
   return false
 }
 
-export function fillInTheRest(grid) {
+export function fillInAllCellsRecursive(grid) {
   if (getKnownCellCount(grid) === GRID_SIZE ** 2) return grid
   let finalGrid = undefined
   let count = 0
 
   function recurse(myGrid, curRow = 0, curCol = 0) {
     count++
-    if (count % 100 === 0) {
+    if (count % 1000 === 0) {
       console.log(count)
       console.log(stringifyGrid(myGrid))
     }
@@ -464,19 +464,30 @@ export function stringifyGrid(grid) {
   return strGrid
 }
 
+export function printGrid(grid) {
+  console.log(stringifyGrid(grid))
+}
+
 export function run() {
   const t1 = Date.now()
   const startingGrid = seedGrid(fileInput)
-  const lowFruitGrid = lowHangingFruit(startingGrid)
-  console.log('After low hanging fruit:')
-  console.log(stringifyGrid(lowFruitGrid))
-  console.log('Starting boxes:', getKnownCellCount(startingGrid))
-  console.log('After low hanging fruit:', getKnownCellCount(lowFruitGrid))
-
-  const finalGrid = fillInTheRest(lowFruitGrid)
-
+  console.log('Starting Grid')
+  printGrid(startingGrid)
+  
+  const automaticCellsFilledGrid = fillAutomaticCells(startingGrid)
+  console.log('After automatic cells filled:')
+  printGrid(automaticCellsFilledGrid)
+  
+  const finalGrid = fillInAllCellsRecursive(automaticCellsFilledGrid)
   console.log('\nAfter filling in the rest')
-  console.log(stringifyGrid(finalGrid))
+  printGrid(finalGrid)
+
+  console.log('Stats:')
+  console.log('Starting boxes:', getKnownCellCount(startingGrid))
+  console.log(
+    'After automatic cells filled:',
+    getKnownCellCount(automaticCellsFilledGrid)
+  )
   console.log('After rest:', getKnownCellCount(finalGrid))
   console.log('Time:', Date.now() - t1)
 }

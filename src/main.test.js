@@ -556,9 +556,9 @@ describe('Utilities', () => {
   })
 })
 
-describe('lowHangingFruit', () => {
-  const { stringifyGrid, lowHangingFruit } = main
+describe('fillAutomaticCells', () => {
+  const { stringifyGrid, fillAutomaticCells } = main
   test('should match snapshot after processing', () => {
-    expect(stringifyGrid(lowHangingFruit(cloneDeep(grid)))).toMatchSnapshot()
+    expect(stringifyGrid(fillAutomaticCells(cloneDeep(grid)))).toMatchSnapshot()
   })
 })
