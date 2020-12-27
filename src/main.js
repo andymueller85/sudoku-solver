@@ -6,7 +6,7 @@ const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 const DEBUG = false
 
-const fileInput = fs.readFileSync('./input_very_hard.txt', 'utf8')
+const fileInput = fs.readFileSync('./input_hard.txt', 'utf8')
 
 export function seedGrid(input) {
   return input
@@ -353,7 +353,7 @@ export function getPossibleCellValues(grid, rowNum, colNum) {
     .filter(b => new Set(boxMissingNums).has(b))
 }
 
-export function getNextCellCoordinates(grid, rowNum, colNum) {
+export function getNextCellCoordinates(rowNum, colNum) {
   let newRowNum = rowNum
   let newColNum = colNum
   const lastIndex = GRID_SIZE - 1
@@ -370,31 +370,47 @@ export function getNextCellCoordinates(grid, rowNum, colNum) {
   return [newRowNum, newColNum]
 }
 
+export function gridHasAnyImpossibilities(grid) {
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      if (
+        grid[i][j].value === EMPTY_CELL &&
+        getPossibleCellValues(grid, i, j).length === 0
+      ) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 export function fillInTheRest(grid) {
   if (getKnownCellCount(grid) === GRID_SIZE ** 2) return grid
   let finalGrid = undefined
+  let count = 0
 
   function recurse(myGrid, curRow = 0, curCol = 0) {
+    count++
+    if (count % 100 === 0) {
+      console.log(count)
+      console.log(stringifyGrid(myGrid))
+    }
     const curGrid = cloneDeep(myGrid)
 
     for (let rowNum = curRow; rowNum < GRID_SIZE; rowNum++) {
       let colNum = rowNum === curRow ? curCol : 0
       for (; colNum < GRID_SIZE; colNum++) {
-        if (curGrid[rowNum][colNum].value === EMPTY_CELL) {
-          const cellPossibles = getPossibleCellValues(curGrid, rowNum, colNum)
-
-          if (cellPossibles.length === 0) {
+        if (!curGrid[rowNum][colNum].locked) {
+          if (gridHasAnyImpossibilities(curGrid)) {
             return
           }
+
+          const cellPossibles = getPossibleCellValues(curGrid, rowNum, colNum)
 
           cellPossibles.forEach(possibleNum => {
             curGrid[rowNum][colNum] = { value: possibleNum, locked: true }
 
-            const nextCoordinates = getNextCellCoordinates(
-              curGrid,
-              rowNum,
-              colNum
-            )
+            const nextCoordinates = getNextCellCoordinates(rowNum, colNum)
 
             if (!nextCoordinates) finalGrid = curGrid
 
@@ -409,6 +425,7 @@ export function fillInTheRest(grid) {
   }
 
   recurse(grid)
+  console.log({ count })
   return finalGrid
 }
 
@@ -451,14 +468,15 @@ export function run() {
   const t1 = Date.now()
   const startingGrid = seedGrid(fileInput)
   const lowFruitGrid = lowHangingFruit(startingGrid)
-  const finalGrid = fillInTheRest(lowFruitGrid)
-
   console.log('After low hanging fruit:')
   console.log(stringifyGrid(lowFruitGrid))
-  console.log('\nAfter filling in the rest')
-  console.log(stringifyGrid(finalGrid))
   console.log('Starting boxes:', getKnownCellCount(startingGrid))
   console.log('After low hanging fruit:', getKnownCellCount(lowFruitGrid))
+
+  const finalGrid = fillInTheRest(lowFruitGrid)
+
+  console.log('\nAfter filling in the rest')
+  console.log(stringifyGrid(finalGrid))
   console.log('After rest:', getKnownCellCount(finalGrid))
   console.log('Time:', Date.now() - t1)
 }

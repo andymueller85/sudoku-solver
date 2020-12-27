@@ -550,7 +550,7 @@ describe('Utilities', () => {
     ])(
       'getNextCellCoordinates(grid, %d, %d) === %j',
       (rowNum, colNum, expected) => {
-        expect(getNextCellCoordinates(grid, rowNum, colNum)).toEqual(expected)
+        expect(getNextCellCoordinates(rowNum, colNum)).toEqual(expected)
       }
     )
   })
