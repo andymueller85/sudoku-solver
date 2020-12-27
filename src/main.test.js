@@ -9,47 +9,34 @@ const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = main.seedGrid(fileInput)
 const allIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 const duplicatesInFirstRowGrid = grid.map((r, i) =>
-  i === 0 ? r.map(_ => ({ value: '1', locked: true })) : r
+  i === 0 ? r.map(_ => '1') : r
 )
-const firstRowEmptyGrid = grid.map((r, i) =>
-  i === 0 ? r.map(_ => ({ value: '.', locked: false })) : r
-)
+const firstRowEmptyGrid = grid.map((r, i) => (i === 0 ? r.map(_ => '.') : r))
 const firstRowCompleteGrid = grid.map((r, i) =>
-  i === 0 ? r.map((_, idx) => ({ value: `${idx + 1}`, locked: true })) : r
+  i === 0 ? r.map((_, idx) => `${idx + 1}`) : r
 )
-const firstColumnCompleteGrid = grid.map((r, i) => [
-  { value: `${i + 1}`, locked: true },
-  ...r.slice(1)
-])
-const firstColumnEmptyGrid = grid.map(r => [
-  { value: '.', locked: false },
-  ...r.slice(1)
-])
-const duplicatesInFirstColumnGrid = grid.map(r => [
-  { value: '1', locked: true },
-  ...r.slice(1)
-])
+const firstColumnCompleteGrid = grid.map((r, i) => [`${i + 1}`, ...r.slice(1)])
+const firstColumnEmptyGrid = grid.map(r => ['.', ...r.slice(1)])
+const duplicatesInFirstColumnGrid = grid.map(r => ['1', ...r.slice(1)])
 const firstBoxCompleteGrid = grid.map((r, rowI) =>
-  r.map((c, colI) =>
-    rowI < 3 && colI < 3 ? { value: `${rowI * 3 + colI + 1}`, locked: true } : c
-  )
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? `${rowI * 3 + colI + 1}` : c))
 )
 const firstBoxEmptyGrid = grid.map((r, rowI) =>
-  r.map((c, colI) => (rowI < 3 && colI < 3 ? { value: '.', locked: false } : c))
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? '.' : c))
 )
 const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
-  r.map((c, colI) => (rowI < 3 && colI < 3 ? { value: '1', locked: true } : c))
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? '1' : c))
 )
 
 describe('Row Operations', () => {
   describe('rowIsComplete', () => {
     const fut = main.rowIsComplete
 
-    test('should return false if not every cell in a row is locked', () => {
+    test('should return false if not every cell in a row is filled', () => {
       expect(fut(grid, 0)).toBe(false)
     })
 
-    test('should return true if every cell in a row is locked', () => {
+    test('should return true if every cell in a row is filled', () => {
       expect(fut(firstRowCompleteGrid, 0)).toBe(true)
     })
 
@@ -82,10 +69,10 @@ describe('Row Operations', () => {
     })
   })
 
-  describe('getRowLockedNums', () => {
-    const fut = main.getRowLockedNums
+  describe('getRowFilledNums', () => {
+    const fut = main.getRowFilledNums
 
-    test('should return the elements of a row that are locked', () => {
+    test('should return the elements of a row that are filled', () => {
       expect(fut(grid, 0)).toEqual('91437'.split(''))
     })
 
@@ -135,15 +122,15 @@ describe('Column Operations', () => {
   describe('columnIsComplete', () => {
     const fut = main.columnIsComplete
 
-    test('should return false if not every cell in a column is locked', () => {
+    test('should return false if not every cell in a column is filled', () => {
       expect(fut(grid, 0)).toBe(false)
     })
 
-    test('should return true if every cell in a column is locked', () => {
+    test('should return true if every cell in a column is filled', () => {
       expect(fut(firstColumnCompleteGrid, 0)).toBe(true)
     })
 
-    test('should work when no cells are locked', () => {
+    test('should work when no cells are filled', () => {
       expect(fut(firstColumnEmptyGrid, 0)).toBe(false)
     })
   })
@@ -180,10 +167,10 @@ describe('Column Operations', () => {
     })
   })
 
-  describe('getColumnLockedNums', () => {
-    const fut = main.getColumnLockedNums
+  describe('getColumnFilledNums', () => {
+    const fut = main.getColumnFilledNums
 
-    test('should return all locked values from column', () => {
+    test('should return all filled values from column', () => {
       expect(fut(grid, 0)).toEqual('924'.split(''))
     })
 
@@ -332,8 +319,8 @@ describe('Box Operations', () => {
     })
   })
 
-  describe('getBoxLockedNums', () => {
-    const fut = main.getBoxLockedNums
+  describe('getBoxFilledNums', () => {
+    const fut = main.getBoxFilledNums
 
     test('should return all the known numbers for the box', () => {
       expect(fut(grid, 0, 0)).toEqual('91287'.split(''))
@@ -384,21 +371,13 @@ describe('Box Operations', () => {
 describe('Cell-checking functions', () => {
   const gridWithFirstRowOneCellLeft = grid.map((r, rowIndex) =>
     r.map((c, cIndex) =>
-      rowIndex === 0
-        ? cIndex > 0
-          ? { value: `${cIndex + 1}`, locked: true }
-          : { value: '.', locked: false }
-        : c
+      rowIndex === 0 ? (cIndex > 0 ? `${cIndex + 1}` : '.') : c
     )
   )
 
   const gridWithFirstColumnOneCellLeft = grid.map((r, rowIndex) =>
     r.map((c, cIndex) =>
-      cIndex === 0
-        ? rowIndex > 0
-          ? { value: `${rowIndex + 1}`, locked: true }
-          : { value: '.', locked: false }
-        : c
+      cIndex === 0 ? (rowIndex > 0 ? `${rowIndex + 1}` : '.') : c
     )
   )
 
@@ -497,8 +476,8 @@ describe('Cell-checking functions', () => {
 
   describe('grid-level checks', () => {
     describe('getKnownCellCount', () => {
-      test('should return the count of locked cells', () => {
-        expect(main.getKnownCellCount(grid)).toBe(35)
+      test('should return the count of filled cells', () => {
+        expect(main.getFilledCellCount(grid)).toBe(35)
       })
     })
 
