@@ -18,7 +18,7 @@ export function seedGrid(input) {
 export const possibleNums = '123456789'.split('')
 export const axis = { x: 'X', y: 'Y' }
 
-function isFilled(cell) {
+export function isFilled(cell) {
   return cell !== EMPTY_CELL
 }
 
@@ -58,10 +58,7 @@ export function getRowMissingNums(grid, rowNum) {
 }
 
 export function getRowMissingCells(grid, rowNum) {
-  return grid[rowNum]
-    .map((cell, index) => ({ cell, index }))
-    .filter(({ cell }) => !isFilled(cell))
-    .map(({ index }) => index)
+  return getArrayMissingCells(grid[rowNum])
 }
 
 export function columnIsComplete(grid, columnNum) {
@@ -96,11 +93,7 @@ export function getColumnMissingNums(grid, columnNum) {
 }
 
 export function getColumnMissingCells(grid, columnNum) {
-  return grid
-    .map(r => r[columnNum])
-    .map((cell, index) => ({ cell, index }))
-    .filter(({ cell }) => !isFilled(cell))
-    .map(({ index }) => index)
+  return getArrayMissingCells(grid.map(r => r[columnNum]))
 }
 
 export function getBoxTopLeft(rowOrCol) {
@@ -159,13 +152,12 @@ export function getBoxMissingNums(grid, topLeftRowNum, topLeftColumnNum) {
 }
 
 export function getBoxMissingCells(grid, topLeftRowNum, topLeftColumnNum) {
-  return grid
-    .slice(topLeftRowNum, topLeftRowNum + 3)
-    .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
-    .flat()
-    .map((cell, index) => ({ cell, index }))
-    .filter(({ cell }) => !isFilled(cell))
-    .map(({ index }) => index)
+  return getArrayMissingCells(
+    grid
+        .slice(topLeftRowNum, topLeftRowNum + 3)
+        .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
+        .flat()
+  )
 }
 
 export function checkCellAgainstOtherAxis(grid, rowNum, colNum, num, curAxis) {
@@ -237,7 +229,7 @@ function getBoxIndexes(topLeftRowOrColumn) {
   return [topLeftRowOrColumn, topLeftRowOrColumn + 1, topLeftRowOrColumn + 2]
 }
 
-function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
+export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
   const curRow = getBoxCurRow(topLeftRow, cell)
   const curColumn = getBoxCurColumn(topLeftColumn, cell)
 
@@ -308,6 +300,7 @@ export function gridIsValid(grid) {
   )
 }
 
+/* istanbul ignore next */
 function log(grid, loopCount, msg) {
   if (DEBUG) {
     console.log(`Pass ${loopCount} ${msg}`)
@@ -335,6 +328,7 @@ export function fillAutomaticCells(grid) {
     updatedGrid = fillColumns(updatedGrid)
     log(updatedGrid, loopCount, '- Columns')
 
+    /* istanbul ignore next */
     if (!gridIsValid(updatedGrid)) {
       printGrid(updatedGrid)
       throw 'uh-oh'
@@ -398,10 +392,10 @@ export function fillInAllCellsRecursive(grid) {
 
   function recurse(myGrid, curRow = 0, curCol = 0) {
     count++
-    if (count % 1000 === 0) {
-      console.log(count)
-      console.log(stringifyGrid(myGrid))
-    }
+    // if (count % 1000 === 0) {
+    //   console.log(count)
+    //   console.log(stringifyGrid(myGrid))
+    // }
     const curGrid = cloneDeep(myGrid)
 
     for (let rowNum = curRow; rowNum < GRID_SIZE; rowNum++) {
@@ -471,10 +465,12 @@ export function stringifyGrid(grid) {
   return strGrid
 }
 
+/* istanbul ignore next */
 export function printGrid(grid) {
   console.log(stringifyGrid(grid))
 }
 
+/* istanbul ignore next */
 export function run() {
   const t1 = Date.now()
   const startingGrid = seedGrid(fileInput)

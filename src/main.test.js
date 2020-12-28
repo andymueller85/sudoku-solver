@@ -27,6 +27,9 @@ const firstBoxEmptyGrid = grid.map((r, rowI) =>
 const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
   r.map((c, colI) => (rowI < 3 && colI < 3 ? '1' : c))
 )
+const gridWithImpossibleCells = grid.map((r, i) =>
+  i === 4 ? r.map((c, idx) => `${idx === 0 ? '2' : c}`) : r
+)
 
 describe('Row Operations', () => {
   describe('rowIsComplete', () => {
@@ -444,12 +447,30 @@ describe('Cell-checking functions', () => {
   describe('cellCanBeDeterminedForColumn', () => {
     const fut = main.cellCanBeDeterminedForColumn
     // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
-    test('should return true if number is only one left for the column', () => {
+    test('should return true if number is only one left for the box', () => {
       expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1')).toBe(true)
     })
 
     test('should return false if not', () => {
       expect(fut(gridWithFirstColumnOneCellLeft, 1, 4, '1')).toBe(false)
+    })
+  })
+
+  describe('cellCanBeDeterminedForBox', () => {
+    const fut = main.cellCanBeDeterminedForBox
+    const firstBoxOneCellEmptyGrid = cloneDeep(firstBoxCompleteGrid)
+    firstBoxOneCellEmptyGrid[0][0] = '.'
+    const firstBoxFirstTwoCellsEmptyGrid = cloneDeep(firstBoxCompleteGrid)
+    firstBoxFirstTwoCellsEmptyGrid[0][0] = '.'
+    firstBoxFirstTwoCellsEmptyGrid[0][1] = '.'
+
+    // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
+    test('should return true if number is only one left for the box', () => {
+      expect(fut(firstBoxOneCellEmptyGrid, 0, 0, 0, '1')).toBe(true)
+    })
+
+    test('should return false if not', () => {
+      expect(fut(firstBoxFirstTwoCellsEmptyGrid, 0, 0, 0, '1')).toBe(false)
     })
   })
 
@@ -501,7 +522,7 @@ describe('Cell-checking functions', () => {
     })
   })
 })
- 
+
 describe('Utilities', () => {
   describe('getPossibleCellValues', () => {
     const { getPossibleCellValues } = main
@@ -533,11 +554,70 @@ describe('Utilities', () => {
       }
     )
   })
+
+  describe('isFilled', () => {
+    const { isFilled } = main
+
+    test('should return true if cell is not empty', () => {
+      expect(isFilled('1')).toBe(true)
+    })
+
+    test('should return false if cell is empty', () => {
+      expect(isFilled('.')).toBe(false)
+    })
+  })
+
+  describe('getArrayMissingCells', () => {
+    const { getArrayMissingCells } = main
+    test.each([
+      ['12.456..9'.split(''), [2, 6, 7]],
+      ['.........'.split(''), [0, 1, 2, 3, 4, 5, 6, 7, 8]],
+      ['123456789'.split(''), []]
+    ])('getArrayMissingCells(%j) === %j', (arr, expected) => {
+      expect(getArrayMissingCells(arr)).toEqual(expected)
+    })
+  })
+
+  describe('gridHasAnyImpossibilities', () => {
+    const { gridHasAnyImpossibilities } = main
+
+    test('should return false if all empty cells in the grid have a possible value', () => {
+      expect(gridHasAnyImpossibilities(grid)).toBe(false)
+    })
+
+    test('should return true if there are empty cells for which no value can be placed', () => {
+      expect(gridHasAnyImpossibilities(gridWithImpossibleCells)).toBe(true)
+    })
+  })
 })
 
-describe('fillAutomaticCells', () => {
-  const { stringifyGrid, fillAutomaticCells } = main
-  test('should match snapshot after processing', () => {
-    expect(stringifyGrid(fillAutomaticCells(cloneDeep(grid)))).toMatchSnapshot()
+describe('Fill Cells methods', () => {
+  const {
+    stringifyGrid,
+    fillAutomaticCells,
+    fillInAllCellsRecursive,
+    seedGrid
+  } = main
+  const fileInputHard = fs.readFileSync('./input_hard.txt', 'utf8')
+  const gridHard = seedGrid(fileInputHard)
+  const automaticCellsFilledGrid = fillAutomaticCells(cloneDeep(gridHard))
+  const allCellsFilledGrid = fillInAllCellsRecursive(automaticCellsFilledGrid)
+
+  describe('fillAutomaticCells', () => {
+    test('should match snapshot after processing', () => {
+      expect(stringifyGrid(gridHard)).toMatchSnapshot()
+    })
+  })
+
+  describe('fillInAllCellsRecursive', () => {
+    test('should match snapshot after processing', () => {
+      expect(stringifyGrid(allCellsFilledGrid)).toMatchSnapshot()
+    })
+
+    test('should return the original grid if all cells are already filled', () => {
+      expect(
+        stringifyGrid(fillInAllCellsRecursive(allCellsFilledGrid))
+      ).toMatchSnapshot()
+    })
   })
 })

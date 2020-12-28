@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:watch": "yarn test --watch"
+    "test:watch": "yarn test --watch",
+    "test:coverage": "yarn test --coverage",
+    "test:coverage:watch": "yarn test --coverage --watch"
   },
   "repository": {
     "type": "git",
