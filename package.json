@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "install:frozen": "yarn --frozen-lockfile",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "yarn test --watch",
     "test:coverage": "yarn test --coverage",
