@@ -448,7 +448,7 @@ describe('Cell-checking functions', () => {
     const fut = main.cellCanBeDeterminedForColumn
     // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
     test('should return true if number is only one left for the box', () => {
-      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1')).toBe(false)
+      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1')).toBe(true)
     })
 
     test('should return false if not', () => {
