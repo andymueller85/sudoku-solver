@@ -154,9 +154,9 @@ export function getBoxMissingNums(grid, topLeftRowNum, topLeftColumnNum) {
 export function getBoxMissingCells(grid, topLeftRowNum, topLeftColumnNum) {
   return getArrayMissingCells(
     grid
-        .slice(topLeftRowNum, topLeftRowNum + 3)
-        .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
-        .flat()
+      .slice(topLeftRowNum, topLeftRowNum + 3)
+      .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
+      .flat()
   )
 }
 
@@ -229,15 +229,21 @@ function getBoxIndexes(topLeftRowOrColumn) {
   return [topLeftRowOrColumn, topLeftRowOrColumn + 1, topLeftRowOrColumn + 2]
 }
 
-export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn, num) {
+export function cellCanBeDeterminedForBox(
+  grid,
+  cell,
+  topLeftRow,
+  topLeftColumn,
+  num
+) {
   const curRow = getBoxCurRow(topLeftRow, cell)
   const curColumn = getBoxCurColumn(topLeftColumn, cell)
 
   const rowNeighborsAreFilled = grid[curRow]
     .map((cell, index) => ({ cell, index }))
     .slice(topLeftColumn, topLeftColumn + 3)
-    .filter(({  index  }) =>  index !== curColumn)
-    .every(({cell}) => isFilled(cell))
+    .filter(({ index }) => index !== curColumn)
+    .every(({ cell }) => isFilled(cell))
 
   const rowNeighborsContainNum = getBoxIndexes(topLeftRow)
     .filter(r => r !== curRow)
@@ -247,8 +253,8 @@ export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftColumn,
     .map(r => r[curColumn])
     .map((cell, index) => ({ cell, index }))
     .slice(topLeftRow, topLeftRow + 3)
-    .filter(({index}) => index !== curRow)
-    .every(({cell}) => isFilled(cell))
+    .filter(({ index }) => index !== curRow)
+    .every(({ cell }) => isFilled(cell))
 
   const columnNeighborsContainNum = getBoxIndexes(topLeftColumn)
     .filter(c => c !== curColumn)
@@ -340,6 +346,10 @@ export function fillAutomaticCells(grid) {
   return updatedGrid
 }
 
+// this could be more intelligent - in fact could probably
+// iterate over this to narrow down each cell considerably. See
+// https://medium.com/@eneko/solving-sudoku-puzzles-programmatically-with-logic-and-without-brute-force-b4e8b837d796
+// for some strategies.
 export function getPossibleCellValues(grid, rowNum, colNum) {
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   const colMissingNums = getColumnMissingNums(grid, colNum)
@@ -354,7 +364,7 @@ export function getPossibleCellValues(grid, rowNum, colNum) {
     .filter(b => new Set(boxMissingNums).has(b))
 }
 
-export function getNextCellCoordinates(rowNum, colNum) {
+export function getNextEmptyCellCoordinates(grid, rowNum, colNum) {
   let newRowNum = rowNum
   let newColNum = colNum
   const lastIndex = GRID_SIZE - 1
@@ -368,7 +378,9 @@ export function getNextCellCoordinates(rowNum, colNum) {
     newColNum += 1
   }
 
-  return [newRowNum, newColNum]
+  if (!isFilled(grid[newRowNum][newColNum])) return [newRowNum, newColNum]
+
+  return getNextEmptyCellCoordinates(grid, newRowNum, newColNum)
 }
 
 export function gridHasAnyImpossibilities(grid) {
@@ -392,7 +404,7 @@ export function fillInAllCellsRecursive(grid) {
 
   function recurse(myGrid, curRow = 0, curCol = 0) {
     count++
-    // if (count % 1000 === 0) {
+    // if (count % 10000 === 0) {
     //   console.log(count)
     //   console.log(stringifyGrid(myGrid))
     // }
@@ -411,7 +423,11 @@ export function fillInAllCellsRecursive(grid) {
           cellPossibles.forEach(possibleNum => {
             curGrid[rowNum][colNum] = possibleNum
 
-            const nextCoordinates = getNextCellCoordinates(rowNum, colNum)
+            const nextCoordinates = getNextEmptyCellCoordinates(
+              grid,
+              rowNum,
+              colNum
+            )
 
             if (!nextCoordinates) finalGrid = curGrid
 

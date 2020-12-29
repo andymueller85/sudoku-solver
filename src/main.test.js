@@ -540,17 +540,21 @@ describe('Utilities', () => {
     )
   })
 
-  describe('getNextCell', () => {
-    const { getNextCellCoordinates } = main
+  describe('getNextEmptyCellCoordinates', () => {
+    const { getNextEmptyCellCoordinates } = main
     test.each([
-      [0, 0, [0, 1]],
+      [0, 0, [0, 2]],
+      [0, 8, [1, 1]],
       [3, 7, [3, 8]],
       [3, 8, [4, 0]],
-      [8, 8, undefined]
+      [8, 8, undefined],
+      [8, 6, undefined]
     ])(
       'getNextCellCoordinates(grid, %d, %d) === %j',
       (rowNum, colNum, expected) => {
-        expect(getNextCellCoordinates(rowNum, colNum)).toEqual(expected)
+        expect(getNextEmptyCellCoordinates(grid, rowNum, colNum)).toEqual(
+          expected
+        )
       }
     )
   })
