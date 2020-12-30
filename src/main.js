@@ -6,7 +6,7 @@ const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 const DEBUG = false
 
-const fileInput = fs.readFileSync('./input_evil.txt', 'utf8')
+const fileInput = fs.readFileSync('./input_very_hard.txt', 'utf8')
 
 export function seedGrid(input) {
   return input
@@ -17,6 +17,7 @@ export function seedGrid(input) {
 
 export const possibleNums = '123456789'.split('')
 export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
+export const boxIndexes = [0, 3, 6]
 export const axis = { x: 'X', y: 'Y' }
 
 export function isFilled(cell) {
@@ -109,20 +110,65 @@ export function getBoxCurColumn(topLeftCol, cell) {
   return topLeftCol + (cell % 3)
 }
 
-export function boxIsComplete(grid, topLeftRowNum, topLeftColumnNum) {
-  return grid
-    .slice(topLeftRowNum, topLeftRowNum + 3)
-    .map(r => r.slice(topLeftColumnNum, topLeftColumnNum + 3))
-    .flat()
-    .every(c => isFilled(c))
+export function getTopLeftColumnForBoxNum(boxNum) {
+  return 3 * (boxNum % 3)
 }
 
-export function boxIsValid(grid, topLeftRowNum, topLeftColumnNum) {
+export function swapXY(grid) {
+  return allIndexes.map(c => grid.map(r => r[c]))
+}
+
+export function getBoxTopLeftCoordinates(boxNum) {
+  return [getBoxTopLeft(boxNum), getTopLeftColumnForBoxNum(boxNum)]
+}
+
+export function getBoxAsFlatArray(grid, topLeftRowNum, topLeftColNum) {
+  return grid
+    .slice(topLeftRowNum, topLeftRowNum + 3)
+    .map(r => r.slice(topLeftColNum, topLeftColNum + 3))
+    .flat()
+}
+
+export function boxesAsRowsArray(grid) {
+  return boxIndexes
+    .map(r => boxIndexes.map(c => getBoxAsFlatArray(grid, r, c)))
+    .flat()
+}
+
+export function unflattenBox(boxArray) {
+  return boxIndexes.map(i => boxArray.slice(i, i + 3))
+}
+
+export function unflattenBoxes(grid) {
+  let unflattenedGrid = Array.from({ length: GRID_SIZE }, () =>
+    Array.from({ length: GRID_SIZE })
+  )
+
+  grid.forEach((b, bIdx) => {
+    const [topLeftRow, topLeftCol] = getBoxTopLeftCoordinates(bIdx)
+
+    unflattenBox(b).forEach((r, rIdx) => {
+      r.forEach((c, cIdx) => {
+        unflattenedGrid[topLeftRow + rIdx][topLeftCol + cIdx] = c
+      })
+    })
+  })
+
+  return unflattenedGrid
+}
+
+export function boxIsComplete(grid, topLeftRowNum, topLeftColNum) {
+  return getBoxAsFlatArray(grid, topLeftRowNum, topLeftColNum).every(c =>
+    isFilled(c)
+  )
+}
+
+export function boxIsValid(grid, topLeftRowNum, topLeftColNum) {
   return (
     JSON.stringify(
       [
-        ...getBoxFilledNums(grid, topLeftRowNum, topLeftColumnNum),
-        ...getBoxMissingNums(grid, topLeftRowNum, topLeftColumnNum)
+        ...getBoxFilledNums(grid, topLeftRowNum, topLeftColNum),
+        ...getBoxMissingNums(grid, topLeftRowNum, topLeftColNum)
       ].sort()
     ) === JSON.stringify(possibleNums)
   )
@@ -339,6 +385,7 @@ export function getUniqueArrays(...arrayOfArrays) {
   return uniqueArrays
 }
 
+// TODO: matching sets functions need tests
 export function findMatches(arr) {
   return arr.map((c, arrIdx, cells) => ({
     possibles: c,
@@ -354,11 +401,11 @@ export function findMatches(arr) {
   }))
 }
 
-function narrowPossibles(matches, possiblesGrid, curAxis) {
+function narrowPossibles(matches, possiblesGrid) {
   let possibleValsGrid = cloneDeep(possiblesGrid)
 
   for (let n = 2; n < GRID_SIZE; n++) {
-    matches.forEach((m, thisIndex) => {
+    matches.forEach((m, rowIdx) => {
       const matchesOfSizeN = m.filter(
         r => r.matches.length > 0 && r.possibles.length === n
       )
@@ -373,24 +420,46 @@ function narrowPossibles(matches, possiblesGrid, curAxis) {
             ...new Set(matchesOfSizeN.map(m => m.matches).flat())
           ]
 
-          // if (possibles.length === n) {
           allIndexes
             .filter(n => !setIndexes.includes(n))
-            .forEach(otherAxisIndex => {
-              const rowIdx = curAxis === axis.x ? thisIndex : otherAxisIndex
-              const colIdx = curAxis === axis.x ? otherAxisIndex : thisIndex
-
+            .forEach(colIdx => {
               possibleValsGrid[rowIdx][colIdx] = possibleValsGrid[rowIdx][
                 colIdx
               ].filter((v, _, a) => n > a.length || !possibles.includes(v))
             })
-          // }
         })
       }
     })
   }
 
   return possibleValsGrid
+}
+
+export function processRowMatchingSets(possibleValsGrid) {
+  return narrowPossibles(possibleValsGrid.map(findMatches), possibleValsGrid)
+}
+
+export function processColumnMatchingSets(possibleValsGrid) {
+  const columnMatches = possibleValsGrid[0]
+    .map((_, cIdx) => possibleValsGrid.map(r => r[cIdx]))
+    .map(findMatches)
+
+  return swapXY(
+    narrowPossibles(swapXY(columnMatches), swapXY(possibleValsGrid))
+  )
+}
+
+export function processBoxMatchingSets(possibleValsGrid) {
+  const possibleValsBoxesAsRows = boxesAsRowsArray(possibleValsGrid)
+  const boxMatches = possibleValsBoxesAsRows.map(findMatches)
+
+  return unflattenBoxes(narrowPossibles(boxMatches, possibleValsBoxesAsRows))
+}
+
+export function processMatchingSets(possibleValsGrid) {
+  return processRowMatchingSets(
+    processColumnMatchingSets(processBoxMatchingSets(possibleValsGrid))
+  )
 }
 
 export function gridPossibleValues(grid) {
@@ -412,28 +481,13 @@ export function gridPossibleValues(grid) {
     })
   )
 
-  // for every row, see if there are cells with matching possible vals
-  const rowMatches = possibleValsGrid.map(findMatches)
-
-  possibleValsGrid = narrowPossibles(rowMatches, possibleValsGrid, axis.x)
-
-  const columnMatches = possibleValsGrid[0]
-    .map((_, cIdx) => possibleValsGrid.map(r => r[cIdx]))
-    .map(findMatches)
-
-  possibleValsGrid = narrowPossibles(columnMatches, possibleValsGrid, axis.y)
-
-  return possibleValsGrid
+  // stealing some strategies from
+  // https://medium.com/@eneko/solving-sudoku-puzzles-programmatically-with-logic-and-without-brute-force-b4e8b837d796
+  return processMatchingSets(possibleValsGrid)
 }
 
-// this could be more intelligent - in fact could probably
-// iterate over this to narrow down each cell considerably. See
-// https://medium.com/@eneko/solving-sudoku-puzzles-programmatically-with-logic-and-without-brute-force-b4e8b837d796
-// for some strategies.
 export function getPossibleCellValues(grid, rowNum, colNum) {
-  // need a grid containing all grid possible cells. then can apply rules like
-  // finding cells in the same column with the same possible cells.
-  // can then eliminate those possibilities from other cells in the column.
+  // TODO: look into how to use gridPossibleVals efficiently here
 
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   const colMissingNums = getColumnMissingNums(grid, colNum)

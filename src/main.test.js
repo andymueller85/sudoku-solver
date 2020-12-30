@@ -30,6 +30,7 @@ const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
 const gridWithImpossibleCells = grid.map((r, i) =>
   i === 4 ? r.map((c, idx) => `${idx === 0 ? '2' : c}`) : r
 )
+const flattenedBoxGrid = main.boxesAsRowsArray(grid)
 
 describe('Row Operations', () => {
   describe('rowIsComplete', () => {
@@ -235,6 +236,49 @@ describe('Box Operations', () => {
       [8, 6]
     ])('getBoxTopLeft(%d) === %d', (rowOrCol, expected) => {
       expect(fut(rowOrCol)).toBe(expected)
+    })
+  })
+
+  describe('getTopLeftColumnForBoxNum', () => {
+    const { getTopLeftColumnForBoxNum } = main
+
+    test.each([
+      [0, 0],
+      [1, 3],
+      [2, 6],
+      [3, 0],
+      [4, 3],
+      [5, 6],
+      [6, 0],
+      [7, 3],
+      [8, 6]
+    ])('getBoxTopLeftCoordinates(%d) === %j', (boxNum, expected) => {
+      expect(getTopLeftColumnForBoxNum(boxNum)).toEqual(expected)
+    })
+  })
+
+  describe('swapXY', () => {
+    const { swapXY, stringifyGrid } = main
+    test('return the grid with x and y axis swapped ', () => {
+      expect(stringifyGrid(swapXY(grid))).toMatchSnapshot()
+    })
+  })
+
+  describe('getBoxTopLeftCoordinates', () => {
+    const { getBoxTopLeftCoordinates } = main
+
+    test.each([
+      [0, [0, 0]],
+      [1, [0, 3]],
+      [2, [0, 6]],
+      [3, [3, 0]],
+      [4, [3, 3]],
+      [5, [3, 6]],
+      [6, [6, 0]],
+      [7, [6, 3]],
+      [8, [6, 6]]
+    ])('getBoxTopLeftCoordinates(%d) === %j', (boxNum, expected) => {
+      expect(getBoxTopLeftCoordinates(boxNum)).toEqual(expected)
     })
   })
 
@@ -632,6 +676,57 @@ describe('Utilities', () => {
     test('should return true if there are empty cells for which no value can be placed', () => {
       expect(gridHasAnyImpossibilities(gridWithImpossibleCells)).toBe(true)
     })
+  })
+
+  describe('getBoxAsFlatArray', () => {
+    const { getBoxAsFlatArray } = main
+
+    test.each([
+      [0, 0, '91.2...87'.split('')],
+      [0, 3, '4......36'.split('')],
+      [0, 6, '.376..1..'.split('')],
+      [3, 0, '.95.41...'.split('')],
+      [3, 3, '...985...'.split('')],
+      [3, 6, '...36.49.'.split('')],
+      [6, 0, '..3..947.'.split('')],
+      [6, 3, '19......3'.split('')],
+      [6, 6, '82...3.16'.split('')]
+    ])(
+      'getBoxAsFlatArray(%d, %d) === %j',
+      (topLeftRowNum, topLeftColNum, expected) => {
+        expect(getBoxAsFlatArray(grid, topLeftRowNum, topLeftColNum)).toEqual(
+          expected
+        )
+      }
+    )
+  })
+})
+
+describe('boxesAsRowsArray', () => {
+  const { boxesAsRowsArray, stringifyGrid } = main
+
+  test('should return the grid with the boxes represented as rows', () => {
+    expect(stringifyGrid(boxesAsRowsArray(grid))).toMatchSnapshot()
+  })
+})
+
+describe('unflattenBox', () => {
+  const { unflattenBox } = main
+
+  test('should return the array as a 3x3 box', () => {
+    expect(unflattenBox('123456789'.slice(''))).toEqual([
+      '123'.slice(''),
+      '456'.slice(''),
+      '789'.slice('')
+    ])
+  })
+})
+
+describe('unflattenBoxes', () => {
+  const { unflattenBoxes } = main
+
+  test('should transform the flattened-box grid back to grid by row', () => {
+    expect(main.unflattenBoxes(flattenedBoxGrid)).toEqual(grid)
   })
 })
 
