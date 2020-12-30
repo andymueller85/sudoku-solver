@@ -6,7 +6,7 @@ const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 const DEBUG = false
 
-const fileInput = fs.readFileSync('./input_very_hard.txt', 'utf8')
+const fileInput = fs.readFileSync('./input_evil.txt', 'utf8')
 
 export function seedGrid(input) {
   return input
@@ -16,6 +16,7 @@ export function seedGrid(input) {
 }
 
 export const possibleNums = '123456789'.split('')
+export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
 export const axis = { x: 'X', y: 'Y' }
 
 export function isFilled(cell) {
@@ -314,36 +315,115 @@ function log(grid, loopCount, msg) {
   }
 }
 
-export function fillAutomaticCells(grid) {
-  let updatedGrid = cloneDeep(grid)
-  let prevFilledCellCount = 0
-  let filledCellCount = getFilledCellCount(updatedGrid)
-  let loopCount = 0
+export function allArraysAreEqual(...arrayOfArrays) {
+  const firstArr = arrayOfArrays[0]
 
-  while (
-    filledCellCount > prevFilledCellCount &&
-    filledCellCount < GRID_SIZE ** 2
-  ) {
-    loopCount++
-    prevFilledCellCount = filledCellCount
+  return arrayOfArrays
+    .slice(1)
+    .every(
+      a =>
+        a.length === firstArr.length &&
+        a.every((element, idx) => element === firstArr[idx])
+    )
+}
 
-    updatedGrid = fillBoxes(updatedGrid)
-    log(updatedGrid, loopCount, '- Boxes')
-    updatedGrid = fillRows(updatedGrid)
-    log(updatedGrid, loopCount, '- Rows')
-    updatedGrid = fillColumns(updatedGrid)
-    log(updatedGrid, loopCount, '- Columns')
+export function getUniqueArrays(...arrayOfArrays) {
+  let uniqueArrays = [arrayOfArrays[0]]
 
-    /* istanbul ignore next */
-    if (!gridIsValid(updatedGrid)) {
-      printGrid(updatedGrid)
-      throw 'uh-oh'
+  arrayOfArrays.slice(1).forEach(a => {
+    if (uniqueArrays.every(u => !allArraysAreEqual(u, a))) {
+      uniqueArrays.push(a)
     }
+  })
 
-    filledCellCount = getFilledCellCount(updatedGrid)
+  return uniqueArrays
+}
+
+export function findMatches(arr) {
+  return arr.map((c, arrIdx, cells) => ({
+    possibles: c,
+    matches: cells
+      .map((vals, idx) => ({ vals, idx }))
+      .filter(
+        cell =>
+          arrIdx !== cell.idx &&
+          cell.vals.length === c.length &&
+          cell.vals.every((v, i) => v === c[i])
+      )
+      .map(({ idx }) => idx)
+  }))
+}
+
+function narrowPossibles(matches, possiblesGrid, curAxis) {
+  let possibleValsGrid = cloneDeep(possiblesGrid)
+
+  for (let n = 2; n < GRID_SIZE; n++) {
+    matches.forEach((m, thisIndex) => {
+      const matchesOfSizeN = m.filter(
+        r => r.matches.length > 0 && r.possibles.length === n
+      )
+
+      if (matchesOfSizeN.length === n) {
+        const matchingSets = getUniqueArrays(
+          ...matchesOfSizeN.map(m => m.possibles)
+        )
+
+        matchingSets.forEach(possibles => {
+          const setIndexes = [
+            ...new Set(matchesOfSizeN.map(m => m.matches).flat())
+          ]
+
+          // if (possibles.length === n) {
+          allIndexes
+            .filter(n => !setIndexes.includes(n))
+            .forEach(otherAxisIndex => {
+              const rowIdx = curAxis === axis.x ? thisIndex : otherAxisIndex
+              const colIdx = curAxis === axis.x ? otherAxisIndex : thisIndex
+
+              possibleValsGrid[rowIdx][colIdx] = possibleValsGrid[rowIdx][
+                colIdx
+              ].filter((v, _, a) => n > a.length || !possibles.includes(v))
+            })
+          // }
+        })
+      }
+    })
   }
 
-  return updatedGrid
+  return possibleValsGrid
+}
+
+export function gridPossibleValues(grid) {
+  let possibleValsGrid = grid.map((r, rIdx) =>
+    r.map((c, cIdx) => {
+      if (isFilled(c)) return [c]
+
+      const rowMissingNums = getRowMissingNums(grid, rIdx)
+      const colMissingNums = getColumnMissingNums(grid, cIdx)
+      const boxMissingNums = getBoxMissingNums(
+        grid,
+        getBoxTopLeft(rIdx),
+        getBoxTopLeft(cIdx)
+      )
+
+      return [...new Set(rowMissingNums)]
+        .filter(a => new Set(colMissingNums).has(a))
+        .filter(b => new Set(boxMissingNums).has(b))
+    })
+  )
+
+  // for every row, see if there are cells with matching possible vals
+  const rowMatches = possibleValsGrid.map(findMatches)
+
+  possibleValsGrid = narrowPossibles(rowMatches, possibleValsGrid, axis.x)
+
+  const columnMatches = possibleValsGrid[0]
+    .map((_, cIdx) => possibleValsGrid.map(r => r[cIdx]))
+    .map(findMatches)
+
+  possibleValsGrid = narrowPossibles(columnMatches, possibleValsGrid, axis.y)
+
+  return possibleValsGrid
 }
 
 // this could be more intelligent - in fact could probably
@@ -351,6 +431,10 @@ export function fillAutomaticCells(grid) {
 // https://medium.com/@eneko/solving-sudoku-puzzles-programmatically-with-logic-and-without-brute-force-b4e8b837d796
 // for some strategies.
 export function getPossibleCellValues(grid, rowNum, colNum) {
+  // need a grid containing all grid possible cells. then can apply rules like
+  // finding cells in the same column with the same possible cells.
+  // can then eliminate those possibilities from other cells in the column.
+
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   const colMissingNums = getColumnMissingNums(grid, colNum)
   const boxMissingNums = getBoxMissingNums(
@@ -395,6 +479,46 @@ export function gridHasAnyImpossibilities(grid) {
     }
   }
   return false
+}
+
+export function fillAutomaticCells(grid) {
+  let updatedGrid = cloneDeep(grid)
+  let prevFilledCellCount = 0
+  let filledCellCount = getFilledCellCount(updatedGrid)
+  let loopCount = 0
+
+  while (
+    filledCellCount > prevFilledCellCount &&
+    filledCellCount < GRID_SIZE ** 2
+  ) {
+    loopCount++
+    prevFilledCellCount = filledCellCount
+
+    updatedGrid = fillBoxes(updatedGrid)
+    log(updatedGrid, loopCount, '- Boxes')
+    updatedGrid = fillRows(updatedGrid)
+    log(updatedGrid, loopCount, '- Rows')
+    updatedGrid = fillColumns(updatedGrid)
+    log(updatedGrid, loopCount, '- Columns')
+
+    gridPossibleValues(updatedGrid).forEach((r, rIdx) =>
+      r.forEach((c, cIdx) => {
+        if (!isFilled(updatedGrid[rIdx][cIdx])) {
+          if (c.length === 1) updatedGrid[rIdx][cIdx] = c[0]
+        }
+      })
+    )
+
+    /* istanbul ignore next */
+    if (!gridIsValid(updatedGrid)) {
+      printGrid(updatedGrid)
+      throw 'uh-oh'
+    }
+
+    filledCellCount = getFilledCellCount(updatedGrid)
+  }
+
+  return updatedGrid
 }
 
 export function fillInAllCellsRecursive(grid) {
@@ -507,6 +631,6 @@ export function run() {
     'After automatic cells filled:',
     getFilledCellCount(automaticCellsFilledGrid)
   )
-  console.log('After rest:', getFilledCellCount(finalGrid))
+  // console.log('After rest:', getFilledCellCount(finalGrid))
   console.log('Time:', Date.now() - t1)
 }

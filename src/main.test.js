@@ -540,6 +540,46 @@ describe('Utilities', () => {
     )
   })
 
+  describe('allArraysAreEqual', () => {
+    const { allArraysAreEqual } = main
+
+    test('should return true if all arrays passed are the same', () => {
+      expect(allArraysAreEqual('12345'.split(), '12345'.split())).toBe(true)
+    })
+
+    test('should work for any number of arrays', () => {
+      expect(
+        allArraysAreEqual('12345'.split(), '12345'.split(), '12345'.split())
+      ).toBe(true)
+    })
+
+    test('should return true if only one array is passed', () => {
+      expect(allArraysAreEqual('12345'.split())).toBe(true)
+    })
+
+    test('should return false if arrays are different', () => {
+      expect(allArraysAreEqual('12345'.split(), '1234'.split())).toBe(false)
+    })
+  })
+
+  describe('getUniqueArrays', () => {
+    const { getUniqueArrays } = main
+    const arr1 = '12345'.split('')
+    const arr2 = '1234'.split('')
+
+    test('should return an array containing all of the unique arrays passed in', () => {
+      expect(getUniqueArrays(arr1, arr1, arr2)).toEqual([arr1, arr2])
+    })
+
+    test('should work for a single repeated array', () => {
+      expect(getUniqueArrays(arr1, arr1)).toEqual([arr1])
+    })
+
+    test('should work for a single array', () => {
+      expect(getUniqueArrays(arr1)).toEqual([arr1])
+    })
+  })
+
   describe('getNextEmptyCellCoordinates', () => {
     const { getNextEmptyCellCoordinates } = main
     test.each([
