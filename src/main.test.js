@@ -700,6 +700,38 @@ describe('Utilities', () => {
       }
     )
   })
+
+  describe('getOtherIndexes', () => {
+    const { getOtherIndexes } = main
+
+    test.each([
+      [0, [3, 4, 5, 6, 7, 8]],
+      [1, [0, 1, 2, 6, 7, 8]],
+      [2, [0, 1, 2, 3, 4, 5]]
+    ])('getOtherIndexes(%d) === %j', (index, expected) => {
+      expect(getOtherIndexes(index)).toEqual(expected)
+    })
+  })
+
+  describe('arrayIntersection', () => {
+    const { arrayIntersection } = main
+
+    test('should return the intersection of the passed-in arrays', () => {
+      expect(arrayIntersection([0, 1, 2], [1, 2, 3])).toEqual([1, 2])
+    })
+
+    test('should work for any number of arrays', () => {
+      expect(arrayIntersection([0, 1, 2], [1, 2, 3], [2, 3, 4])).toEqual([2])
+    })
+
+    test('should return empty array when there are no results', () => {
+      expect(arrayIntersection([0, 1, 2], [1, 2, 3], [3, 4, 5])).toEqual([])
+    })
+
+    test('should work for a single array', () => {
+      expect(arrayIntersection([0, 1, 2])).toEqual([0, 1, 2])
+    })
+  })
 })
 
 describe('boxesAsRowsArray', () => {

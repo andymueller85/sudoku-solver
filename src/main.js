@@ -18,6 +18,7 @@ export function seedGrid(input) {
 export const possibleNums = '123456789'.split('')
 export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
 export const boxIndexes = [0, 3, 6]
+export const miniGridIndexes = [0, 1, 2]
 export const axis = { x: 'X', y: 'Y' }
 
 export function isFilled(cell) {
@@ -31,18 +32,21 @@ export function getArrayMissingCells(arr) {
     .map(({ index }) => index)
 }
 
+export function arrayIntersection(...arrays) {
+  return arrays.reduce((acc, cur) => acc.filter(a => cur.includes(a)))
+}
+
 export function rowIsComplete(grid, rowNum) {
   return grid[rowNum].every(c => isFilled(c))
 }
 
 export function rowIsValid(grid, rowNum) {
-  return (
-    JSON.stringify(
-      [
-        ...getRowFilledNums(grid, rowNum),
-        ...getRowMissingNums(grid, rowNum)
-      ].sort()
-    ) === JSON.stringify(possibleNums)
+  return allArraysAreEqual(
+    [
+      ...getRowFilledNums(grid, rowNum),
+      ...getRowMissingNums(grid, rowNum)
+    ].sort(),
+    possibleNums
   )
 }
 
@@ -68,13 +72,12 @@ export function columnIsComplete(grid, columnNum) {
 }
 
 export function columnIsValid(grid, colNum) {
-  return (
-    JSON.stringify(
-      [
-        ...getColumnFilledNums(grid, colNum),
-        ...getColumnMissingNums(grid, colNum)
-      ].sort()
-    ) === JSON.stringify(possibleNums)
+  return allArraysAreEqual(
+    [
+      ...getColumnFilledNums(grid, colNum),
+      ...getColumnMissingNums(grid, colNum)
+    ].sort(),
+    possibleNums
   )
 }
 
@@ -164,13 +167,12 @@ export function boxIsComplete(grid, topLeftRowNum, topLeftColNum) {
 }
 
 export function boxIsValid(grid, topLeftRowNum, topLeftColNum) {
-  return (
-    JSON.stringify(
-      [
-        ...getBoxFilledNums(grid, topLeftRowNum, topLeftColNum),
-        ...getBoxMissingNums(grid, topLeftRowNum, topLeftColNum)
-      ].sort()
-    ) === JSON.stringify(possibleNums)
+  return allArraysAreEqual(
+    [
+      ...getBoxFilledNums(grid, topLeftRowNum, topLeftColNum),
+      ...getBoxMissingNums(grid, topLeftRowNum, topLeftColNum)
+    ].sort(),
+    possibleNums
   )
 }
 
@@ -444,9 +446,7 @@ export function processColumnMatchingSets(possibleValsGrid) {
     .map((_, cIdx) => possibleValsGrid.map(r => r[cIdx]))
     .map(findMatches)
 
-  return swapXY(
-    narrowPossibles(swapXY(columnMatches), swapXY(possibleValsGrid))
-  )
+  return swapXY(narrowPossibles(columnMatches, swapXY(possibleValsGrid)))
 }
 
 export function processBoxMatchingSets(possibleValsGrid) {
@@ -457,9 +457,70 @@ export function processBoxMatchingSets(possibleValsGrid) {
 }
 
 export function processMatchingSets(possibleValsGrid) {
-  return processRowMatchingSets(
-    processColumnMatchingSets(processBoxMatchingSets(possibleValsGrid))
+  let myGrid = processBoxMatchingSets(possibleValsGrid)
+  myGrid = processColumnMatchingSets(myGrid)
+  myGrid = processRowMatchingSets(myGrid)
+
+  return myGrid
+}
+
+export function getImpossibilities(arr) {
+  return possibleNums.filter(
+    p => ![...new Set(arr.reduce((acc, cur) => acc.concat(cur)))].includes(p)
   )
+}
+
+export function getOtherIndexes(i) {
+  return allIndexes.filter(p => p < i * 3 || p > i * 3 + 2)
+}
+
+export function processBoxIntersections(
+  possibleValsGrid,
+  topLeftRowNum,
+  topLeftColNum
+) {
+  let myGrid = cloneDeep(possibleValsGrid)
+  const flatBox = getBoxAsFlatArray(myGrid, topLeftRowNum, topLeftColNum)
+
+  miniGridIndexes.forEach(i => {
+    const row = myGrid[topLeftRowNum + i]
+    const boxOtherIndexes = getOtherIndexes(i)
+    const outsideOtherIndexes = getOtherIndexes(topLeftColNum / 3)
+    const outsideBoxImpossibilities = getImpossibilities(
+      outsideOtherIndexes.map(i => row[i])
+    )
+    const insideBoxImpossibilities = getImpossibilities(
+      boxOtherIndexes.map(i => flatBox[i])
+    )
+
+    boxOtherIndexes.forEach(idx => {
+      const gridRow = getBoxCurRow(topLeftRowNum, idx)
+      const gridCol = getBoxCurColumn(topLeftColNum, idx)
+
+      myGrid[gridRow][gridCol] = flatBox[idx].filter(
+        n => !outsideBoxImpossibilities.includes(n)
+      )
+    })
+
+    outsideOtherIndexes.forEach(idx => {
+      myGrid[topLeftRowNum + i][idx] = row[idx].filter(
+        n => !insideBoxImpossibilities.includes(n)
+      )
+    })
+  })
+
+  return myGrid
+}
+
+export function processAllBoxIntersections(possibleValsGrid) {
+  let myGrid = cloneDeep(possibleValsGrid)
+  boxIndexes.forEach(r => {
+    boxIndexes.forEach(c => {
+      myGrid = processBoxIntersections(myGrid, r, c)
+    })
+  })
+
+  return myGrid
 }
 
 export function gridPossibleValues(grid) {
@@ -475,15 +536,16 @@ export function gridPossibleValues(grid) {
         getBoxTopLeft(cIdx)
       )
 
-      return [...new Set(rowMissingNums)]
-        .filter(a => new Set(colMissingNums).has(a))
-        .filter(b => new Set(boxMissingNums).has(b))
+      return arrayIntersection(rowMissingNums, colMissingNums, boxMissingNums)
     })
   )
 
   // stealing some strategies from
   // https://medium.com/@eneko/solving-sudoku-puzzles-programmatically-with-logic-and-without-brute-force-b4e8b837d796
-  return processMatchingSets(possibleValsGrid)
+  possibleValsGrid = processMatchingSets(possibleValsGrid)
+  possibleValsGrid = processAllBoxIntersections(possibleValsGrid)
+
+  return possibleValsGrid
 }
 
 export function getPossibleCellValues(grid, rowNum, colNum) {
