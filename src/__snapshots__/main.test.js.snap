@@ -110,7 +110,7 @@ exports[`Fill Cells methods fillCellsLogically should match snapshot after proce
 -------------------------------------------------------"
 `;
 
-exports[`boxesAsRowsArray should return the grid with the boxes represented as rows 1`] = `
+exports[`flattenBoxes should return the grid with the boxes represented as rows 1`] = `
 "-------------------------------------------------------
 |  9  |  1  |     ❚  2  |     |     ❚     |  8  |  7  |
 -------------------------------------------------------

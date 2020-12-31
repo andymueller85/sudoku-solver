@@ -8,13 +8,9 @@ const { cloneDeep } = lodash
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = main.seedGrid(fileInput)
 const allIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-const duplicatesInFirstRowGrid = grid.map((r, i) =>
-  i === 0 ? r.map(_ => '1') : r
-)
+const duplicatesInFirstRowGrid = grid.map((r, i) => (i === 0 ? r.map(_ => '1') : r))
 const firstRowEmptyGrid = grid.map((r, i) => (i === 0 ? r.map(_ => '.') : r))
-const firstRowCompleteGrid = grid.map((r, i) =>
-  i === 0 ? r.map((_, idx) => `${idx + 1}`) : r
-)
+const firstRowCompleteGrid = grid.map((r, i) => (i === 0 ? r.map((_, idx) => `${idx + 1}`) : r))
 const firstColumnCompleteGrid = grid.map((r, i) => [`${i + 1}`, ...r.slice(1)])
 const firstColumnEmptyGrid = grid.map(r => ['.', ...r.slice(1)])
 const duplicatesInFirstColumnGrid = grid.map(r => ['1', ...r.slice(1)])
@@ -30,199 +26,199 @@ const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
 const gridWithImpossibleCells = grid.map((r, i) =>
   i === 4 ? r.map((c, idx) => `${idx === 0 ? '2' : c}`) : r
 )
-const flattenedBoxGrid = main.boxesAsRowsArray(grid)
+const flattenedBoxGrid = main.flattenBoxes(grid)
 
 describe('Row Operations', () => {
   describe('rowIsComplete', () => {
-    const fut = main.rowIsComplete
+    const { rowIsComplete } = main
 
     test('should return false if not every cell in a row is filled', () => {
-      expect(fut(grid, 0)).toBe(false)
+      expect(rowIsComplete(grid, 0)).toBe(false)
     })
 
     test('should return true if every cell in a row is filled', () => {
-      expect(fut(firstRowCompleteGrid, 0)).toBe(true)
+      expect(rowIsComplete(firstRowCompleteGrid, 0)).toBe(true)
     })
 
     test('should work for an empty row', () => {
-      expect(fut(firstRowEmptyGrid, 0)).toBe(false)
+      expect(rowIsComplete(firstRowEmptyGrid, 0)).toBe(false)
     })
   })
 
   describe('rowIsValid', () => {
-    const fut = main.rowIsValid
+    const { rowIsValid } = main
 
     test('should return true if there are no duplicate values in a row', () => {
-      expect(fut(grid, 0)).toBe(true)
+      expect(rowIsValid(grid, 0)).toBe(true)
     })
 
     test('should return false if there are duplicate values in a row', () => {
-      expect(fut(duplicatesInFirstRowGrid, 0)).toBe(false)
+      expect(rowIsValid(duplicatesInFirstRowGrid, 0)).toBe(false)
     })
   })
 
   describe('everyRowIsValid', () => {
-    const fut = main.everyRowIsValid
+    const { everyRowIsValid } = main
 
     test('should return true if every row in the grid is valid', () => {
-      expect(fut(grid)).toBe(true)
+      expect(everyRowIsValid(grid)).toBe(true)
     })
 
     test('should return false if any row in the grid is invalid', () => {
-      expect(fut(duplicatesInFirstRowGrid)).toBe(false)
+      expect(everyRowIsValid(duplicatesInFirstRowGrid)).toBe(false)
     })
   })
 
   describe('getRowFilledNums', () => {
-    const fut = main.getRowFilledNums
+    const { getRowFilledNums } = main
 
     test('should return the elements of a row that are filled', () => {
-      expect(fut(grid, 0)).toEqual('91437'.split(''))
+      expect(getRowFilledNums(grid, 0)).toEqual('91437'.split(''))
     })
 
     test('should work for empty row', () => {
-      expect(fut(firstRowEmptyGrid, 0)).toEqual([])
+      expect(getRowFilledNums(firstRowEmptyGrid, 0)).toEqual([])
     })
 
     test('should work for full row', () => {
-      expect(fut(firstRowCompleteGrid, 0)).toEqual(main.possibleNums)
+      expect(getRowFilledNums(firstRowCompleteGrid, 0)).toEqual(main.possibleNums)
     })
   })
 
   describe('getRowMissingNums', () => {
-    const fut = main.getRowMissingNums
+    const { getRowMissingNums } = main
 
     test('should return all elements of possible values that do not exist in the row', () => {
-      expect(fut(grid, 0)).toEqual('2568'.split(''))
+      expect(getRowMissingNums(grid, 0)).toEqual('2568'.split(''))
     })
 
     test('should work for an empty row', () => {
-      expect(fut(firstRowEmptyGrid, 0)).toEqual(main.possibleNums)
+      expect(getRowMissingNums(firstRowEmptyGrid, 0)).toEqual(main.possibleNums)
     })
 
     test('should work for a full row', () => {
-      expect(fut(firstRowCompleteGrid, 0)).toEqual([])
+      expect(getRowMissingNums(firstRowCompleteGrid, 0)).toEqual([])
     })
   })
 
   describe('getRowMissingCells', () => {
-    const fut = main.getRowMissingCells
+    const { getRowMissingCells } = main
 
     test('should return the index of the elements in a row that are not yet determined', () => {
-      expect(fut(grid, 0)).toEqual([2, 4, 5, 6])
+      expect(getRowMissingCells(grid, 0)).toEqual([2, 4, 5, 6])
     })
 
     test('should work for an empty row', () => {
-      expect(fut(firstRowEmptyGrid, 0)).toEqual(allIndexes)
+      expect(getRowMissingCells(firstRowEmptyGrid, 0)).toEqual(allIndexes)
     })
 
     test('should work for a full row', () => {
-      expect(fut(firstRowCompleteGrid, 0)).toEqual([])
+      expect(getRowMissingCells(firstRowCompleteGrid, 0)).toEqual([])
     })
   })
 })
 
-describe('Column Operations', () => {
+describe('C olumn Operations ', () => {
   describe('columnIsComplete', () => {
-    const fut = main.columnIsComplete
+    const { columnIsComplete } = main
 
     test('should return false if not every cell in a column is filled', () => {
-      expect(fut(grid, 0)).toBe(false)
+      expect(columnIsComplete(grid, 0)).toBe(false)
     })
 
     test('should return true if every cell in a column is filled', () => {
-      expect(fut(firstColumnCompleteGrid, 0)).toBe(true)
+      expect(columnIsComplete(firstColumnCompleteGrid, 0)).toBe(true)
     })
 
     test('should work when no cells are filled', () => {
-      expect(fut(firstColumnEmptyGrid, 0)).toBe(false)
+      expect(columnIsComplete(firstColumnEmptyGrid, 0)).toBe(false)
     })
   })
 
   describe('columnIsValid', () => {
-    const fut = main.columnIsValid
+    const { columnIsValid } = main
 
     test('should return false if there are duplicates in the column', () => {
-      expect(fut(duplicatesInFirstColumnGrid, 0)).toBe(false)
+      expect(columnIsValid(duplicatesInFirstColumnGrid, 0)).toBe(false)
     })
 
     test('should return true if no duplicates in the column', () => {
-      expect(fut(grid, 0)).toBe(true)
+      expect(columnIsValid(grid, 0)).toBe(true)
     })
 
     test('should work for an empty column', () => {
-      expect(fut(firstColumnEmptyGrid, 0)).toBe(true)
+      expect(columnIsValid(firstColumnEmptyGrid, 0)).toBe(true)
     })
   })
 
   describe('everyColumnIsValid', () => {
-    const fut = main.everyColumnIsValid
+    const { everyColumnIsValid } = main
 
     test('should return false if not every column is valid', () => {
-      expect(fut(duplicatesInFirstColumnGrid)).toBe(false)
+      expect(everyColumnIsValid(duplicatesInFirstColumnGrid)).toBe(false)
     })
 
     test('should return true if every column is valid', () => {
-      expect(fut(grid)).toBe(true)
+      expect(everyColumnIsValid(grid)).toBe(true)
     })
 
     test('should work with an empty column', () => {
-      expect(fut(firstColumnEmptyGrid)).toBe(true)
+      expect(everyColumnIsValid(firstColumnEmptyGrid)).toBe(true)
     })
   })
 
   describe('getColumnFilledNums', () => {
-    const fut = main.getColumnFilledNums
+    const { getColumnFilledNums } = main
 
     test('should return all filled values from column', () => {
-      expect(fut(grid, 0)).toEqual('924'.split(''))
+      expect(getColumnFilledNums(grid, 0)).toEqual('924'.split(''))
     })
 
     test('should work for empty column', () => {
-      expect(fut(firstColumnEmptyGrid, 0)).toEqual([])
+      expect(getColumnFilledNums(firstColumnEmptyGrid, 0)).toEqual([])
     })
 
     test('should work for full column', () => {
-      expect(fut(firstColumnCompleteGrid, 0)).toEqual(main.possibleNums)
+      expect(getColumnFilledNums(firstColumnCompleteGrid, 0)).toEqual(main.possibleNums)
     })
   })
 
   describe('getColumnMissingNums', () => {
-    const fut = main.getColumnMissingNums
+    const { getColumnMissingNums } = main
 
     test('should return all missing nums from column', () => {
-      expect(fut(grid, 0)).toEqual('135678'.split(''))
+      expect(getColumnMissingNums(grid, 0)).toEqual('135678'.split(''))
     })
 
     test('should work for an empty column', () => {
-      expect(fut(firstColumnEmptyGrid, 0)).toEqual(main.possibleNums)
+      expect(getColumnMissingNums(firstColumnEmptyGrid, 0)).toEqual(main.possibleNums)
     })
 
-    test('should work for a full column', () => {
-      expect(fut(firstColumnCompleteGrid, 0)).toEqual([])
+    test('s hould work for a full  column', () => {
+      expect(getColumnMissingNums(firstColumnCompleteGrid, 0)).toEqual([])
     })
   })
 
   describe('getColumnMissingCells', () => {
-    const fut = main.getColumnMissingCells
+    const { getColumnMissingCells } = main
 
     test('should return all missing cell indexes from a column', () => {
-      expect(fut(grid, 0)).toEqual([2, 3, 4, 5, 6, 7])
+      expect(getColumnMissingCells(grid, 0)).toEqual([2, 3, 4, 5, 6, 7])
     })
 
     test('should work for an empty column', () => {
-      expect(fut(firstColumnEmptyGrid, 0)).toEqual(allIndexes)
+      expect(getColumnMissingCells(firstColumnEmptyGrid, 0)).toEqual(allIndexes)
     })
 
     test('should work for a full column', () => {
-      expect(fut(firstColumnCompleteGrid, 0)).toEqual([])
+      expect(getColumnMissingCells(firstColumnCompleteGrid, 0)).toEqual([])
     })
   })
 })
 
 describe('Box Operations', () => {
   describe('getBoxTopLeft - given a row or column, gives the box top left coordinate', () => {
-    const fut = main.getBoxTopLeft
+    const { getBoxTopLeft } = main
 
     test.each([
       [0, 0],
@@ -235,7 +231,7 @@ describe('Box Operations', () => {
       [7, 6],
       [8, 6]
     ])('getBoxTopLeft(%d) === %d', (rowOrCol, expected) => {
-      expect(fut(rowOrCol)).toBe(expected)
+      expect(getBoxTopLeft(rowOrCol)).toBe(expected)
     })
   })
 
@@ -283,7 +279,7 @@ describe('Box Operations', () => {
   })
 
   describe('getBoxCurRow - given a box top left row and cell #, returns the current row', () => {
-    const fut = main.getBoxCurRow
+    const { getBoxCurRow } = main
 
     test.each([
       [0, 0, 0],
@@ -296,12 +292,12 @@ describe('Box Operations', () => {
       [6, 5, 7],
       [6, 8, 8]
     ])('getBoxCurRow(%d, %d) === %d', (topLeftRow, cell, expected) => {
-      expect(fut(topLeftRow, cell)).toBe(expected)
+      expect(getBoxCurRow(topLeftRow, cell)).toBe(expected)
     })
   })
 
   describe('getBoxCurCol - given a box top left column and cell #, returns the current column', () => {
-    const fut = main.getBoxCurColumn
+    const { getBoxCurColumn } = main
 
     test.each([
       [0, 0, 0],
@@ -314,194 +310,148 @@ describe('Box Operations', () => {
       [6, 1, 7],
       [6, 5, 8]
     ])('getBoxCurColumn(%d, %d) === %d', (topLeftCol, cell, expected) => {
-      expect(fut(topLeftCol, cell)).toBe(expected)
+      expect(getBoxCurColumn(topLeftCol, cell)).toBe(expected)
     })
   })
 
   describe('boxIsComplete', () => {
-    const fut = main.boxIsComplete
+    const { boxIsComplete } = main
 
     test('should return false if any box elements are missing', () => {
-      expect(fut(grid, 0, 0)).toBe(false)
+      expect(boxIsComplete(grid, 0, 0)).toBe(false)
     })
 
     test('should work for box with all elements missing', () => {
-      expect(fut(firstBoxEmptyGrid, 0, 0)).toBe(false)
+      expect(boxIsComplete(firstBoxEmptyGrid, 0, 0)).toBe(false)
     })
 
     test('should return true if all box elements are filled', () => {
-      expect(fut(firstBoxCompleteGrid, 0, 0)).toBe(true)
+      expect(boxIsComplete(firstBoxCompleteGrid, 0, 0)).toBe(true)
     })
   })
 
   describe('boxIsValid', () => {
-    const fut = main.boxIsValid
+    const { boxIsValid } = main
 
     test('should return false if box has repeated values', () => {
-      expect(fut(duplicatesInFirstBoxGrid, 0, 0)).toBe(false)
+      expect(boxIsValid(duplicatesInFirstBoxGrid, 0, 0)).toBe(false)
     })
 
     test('should return true if box has no repeated values', () => {
-      expect(fut(grid, 0, 0)).toBe(true)
+      expect(boxIsValid(grid, 0, 0)).toBe(true)
     })
 
     test('should work for an empty box', () => {
-      expect(fut(firstBoxEmptyGrid, 0, 0)).toBe(true)
+      expect(boxIsValid(firstBoxEmptyGrid, 0, 0)).toBe(true)
     })
   })
 
   describe('everyBoxIsValid', () => {
-    const fut = main.everyBoxIsValid
+    const { everyBoxIsValid } = main
 
     test('should return true if every box is valid', () => {
-      expect(fut(grid)).toBe(true)
+      expect(everyBoxIsValid(grid)).toBe(true)
     })
 
     test('should return false if any box is inalid', () => {
-      expect(fut(duplicatesInFirstBoxGrid)).toBe(false)
+      expect(everyBoxIsValid(duplicatesInFirstBoxGrid)).toBe(false)
     })
 
     test('should work for empty box', () => {
-      expect(fut(firstBoxEmptyGrid)).toBe(true)
+      expect(everyBoxIsValid(firstBoxEmptyGrid)).toBe(true)
     })
   })
 
   describe('getBoxFilledNums', () => {
-    const fut = main.getBoxFilledNums
+    const { getBoxFilledNums } = main
 
     test('should return all the known numbers for the box', () => {
-      expect(fut(grid, 0, 0)).toEqual('91287'.split(''))
+      expect(getBoxFilledNums(grid, 0, 0)).toEqual('91287'.split(''))
     })
 
     test('should work for an empty box', () => {
-      expect(fut(firstBoxEmptyGrid, 0, 0)).toEqual([])
+      expect(getBoxFilledNums(firstBoxEmptyGrid, 0, 0)).toEqual([])
     })
 
     test('should work for a box with all numbers known', () => {
-      expect(fut(firstBoxCompleteGrid, 0, 0)).toEqual(main.possibleNums)
+      expect(getBoxFilledNums(firstBoxCompleteGrid, 0, 0)).toEqual(main.possibleNums)
     })
   })
 
   describe('getBoxMissingNums', () => {
-    const fut = main.getBoxMissingNums
+    const { getBoxMissingNums } = main
 
     test('should return all missing numbers for a box', () => {
-      expect(fut(grid, 0, 0)).toEqual('3456'.split(''))
+      expect(getBoxMissingNums(grid, 0, 0)).toEqual('3456'.split(''))
     })
 
     test('should work for an empty box', () => {
-      expect(fut(firstBoxEmptyGrid, 0, 0)).toEqual(main.possibleNums)
+      expect(getBoxMissingNums(firstBoxEmptyGrid, 0, 0)).toEqual(main.possibleNums)
     })
 
     test('should work for a completed box', () => {
-      expect(fut(firstBoxCompleteGrid, 0, 0)).toEqual([])
+      expect(getBoxMissingNums(firstBoxCompleteGrid, 0, 0)).toEqual([])
     })
   })
 
   describe('getBoxMissingCells', () => {
-    const fut = main.getBoxMissingCells
+    const { getBoxMissingCells } = main
 
     test('should return all missing cells for a box', () => {
-      expect(fut(grid, 0, 0)).toEqual([2, 4, 5, 6])
+      expect(getBoxMissingCells(grid, 0, 0)).toEqual([2, 4, 5, 6])
     })
 
     test('should work for an empty box', () => {
-      expect(fut(firstBoxEmptyGrid, 0, 0)).toEqual(allIndexes)
+      expect(getBoxMissingCells(firstBoxEmptyGrid, 0, 0)).toEqual(allIndexes)
     })
 
     test('should work for a completed box', () => {
-      expect(fut(firstBoxCompleteGrid, 0, 0)).toEqual([])
+      expect(getBoxMissingCells(firstBoxCompleteGrid, 0, 0)).toEqual([])
     })
   })
 })
 
 describe('Cell-checking functions', () => {
   const gridWithFirstRowOneCellLeft = grid.map((r, rowIndex) =>
-    r.map((c, cIndex) =>
-      rowIndex === 0 ? (cIndex > 0 ? `${cIndex + 1}` : '.') : c
-    )
+    r.map((c, cIndex) => (rowIndex === 0 ? (cIndex > 0 ? `${cIndex + 1}` : '.') : c))
   )
 
   const gridWithFirstColumnOneCellLeft = grid.map((r, rowIndex) =>
-    r.map((c, cIndex) =>
-      cIndex === 0 ? (rowIndex > 0 ? `${rowIndex + 1}` : '.') : c
-    )
+    r.map((c, cIndex) => (cIndex === 0 ? (rowIndex > 0 ? `${rowIndex + 1}` : '.') : c))
   )
 
   const { axis } = main
 
-  describe('checkCellAgainstOtherAxis', () => {
-    const fut = main.checkCellAgainstOtherAxis
+  describe('cellCanBeDeterminedForRow', () => {
+    const { cellCanBeDeterminedForRow } = main
 
-    test.each([axis.x, axis.y])(
-      'should return false if the box already contains the number - %s axis',
-      testAxis => {
-        expect(fut(grid, 1, 1, '7', testAxis)).toBe(false)
-      }
-    )
+    test('should return false if the box already contains the number', () => {
+      expect(cellCanBeDeterminedForRow(grid, 1, 1, '7')).toBe(false)
+    })
 
-    test.each([
-      [axis.x, '6'],
-      [axis.y, '5']
-    ])(
-      'should return false if the number is already in the current axis - %s axis',
-      (testAxis, num) => {
-        expect(fut(grid, 1, 2, num, testAxis)).toBe(false)
-      }
-    )
+    test('should return false if the number is already in the current row', () => {
+      expect(cellCanBeDeterminedForRow(grid, 1, 2, '6')).toBe(false)
+    })
 
-    test.each([axis.x, axis.y])(
-      'should return false if there is a row or column (opposite this one) that does not contain the number - %s axis',
-      testAxis => {
-        expect(fut(grid, 2, 0, '5', testAxis)).toBe(false)
-      }
-    )
+    test('should return false if there is a column that does not contain the number ', () => {
+      expect(cellCanBeDeterminedForRow(grid, 2, 0, '5')).toBe(false)
+    })
 
     test('should return false if the box already includes the number', () => {
-      expect(fut(grid, 1, 4, '4')).toBe(false)
+      expect(cellCanBeDeterminedForRow(grid, 1, 4, '4')).toBe(false)
     })
 
     test('should return true if every other empty cell column contains the number - X axis', () => {
-      expect(fut(grid, 4, 0, '7', axis.x)).toBe(true)
+      expect(cellCanBeDeterminedForRow(grid, 4, 0, '7', axis.x)).toBe(true)
     })
 
     test('should return true if number is only one left for the row', () => {
-      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1', axis.x)).toBe(true)
-    })
-
-    test('should return true if number is only one left for the column', () => {
-      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1', axis.y)).toEqual(
-        true
-      )
-    })
-  })
-
-  describe('cellCanBeDeterminedForRow', () => {
-    const fut = main.cellCanBeDeterminedForRow
-    // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
-    test('should return true if number is only one left for the row', () => {
-      expect(fut(gridWithFirstRowOneCellLeft, 0, 0, '1')).toBe(true)
-    })
-
-    test('should return false if not', () => {
-      expect(fut(gridWithFirstRowOneCellLeft, 1, 4, '1')).toBe(false)
-    })
-  })
-
-  describe('cellCanBeDeterminedForColumn', () => {
-    const fut = main.cellCanBeDeterminedForColumn
-    // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
-    test('should return true if number is only one left for the box', () => {
-      expect(fut(gridWithFirstColumnOneCellLeft, 0, 0, '1')).toBe(true)
-    })
-
-    test('should return false if not', () => {
-      expect(fut(gridWithFirstColumnOneCellLeft, 1, 4, '1')).toBe(false)
+      expect(cellCanBeDeterminedForRow(gridWithFirstRowOneCellLeft, 0, 0, '1', axis.x)).toBe(true)
     })
   })
 
   describe('cellCanBeDeterminedForBox', () => {
-    const fut = main.cellCanBeDeterminedForBox
+    const { cellCanBeDeterminedForBox } = main
     const firstBoxOneCellEmptyGrid = cloneDeep(firstBoxCompleteGrid)
     firstBoxOneCellEmptyGrid[0][0] = '.'
     const firstBoxFirstTwoCellsEmptyGrid = cloneDeep(firstBoxCompleteGrid)
@@ -510,11 +460,11 @@ describe('Cell-checking functions', () => {
 
     // cases are mostly tested by checkCellAGainstOtherAxis tests, just test a couple cases here.
     test('should return true if number is only one left for the box', () => {
-      expect(fut(firstBoxOneCellEmptyGrid, 0, 0, 0, '1')).toBe(true)
+      expect(cellCanBeDeterminedForBox(firstBoxOneCellEmptyGrid, 0, 0, 0, '1')).toBe(true)
     })
 
     test('should return false if not', () => {
-      expect(fut(firstBoxFirstTwoCellsEmptyGrid, 0, 0, 0, '1')).toBe(false)
+      expect(cellCanBeDeterminedForBox(firstBoxFirstTwoCellsEmptyGrid, 0, 0, 0, '1')).toBe(false)
     })
   })
 
@@ -522,19 +472,19 @@ describe('Cell-checking functions', () => {
     const { stringifyGrid, fillRows, fillColumns, fillBoxes } = main
     describe('fillRows', () => {
       test('should match snapshot after one pass', () => {
-        expect(stringifyGrid(fillRows(cloneDeep(grid)))).toMatchSnapshot()
+        expect(stringifyGrid(fillRows(grid))).toMatchSnapshot()
       })
     })
 
     describe('fillColumns (phil collims?)', () => {
       test('should match snapshot after one pass', () => {
-        expect(stringifyGrid(fillColumns(cloneDeep(grid)))).toMatchSnapshot()
+        expect(stringifyGrid(fillColumns(grid))).toMatchSnapshot()
       })
     })
 
     describe('fillBoxes', () => {
       test('should match snapshot after one pass', () => {
-        expect(stringifyGrid(fillBoxes(cloneDeep(grid)))).toMatchSnapshot()
+        expect(stringifyGrid(fillBoxes(grid))).toMatchSnapshot()
       })
     })
   })
@@ -576,12 +526,9 @@ describe('Utilities', () => {
       [1, 4, '157'.split('')],
       [5, 8, '1258'.split('')],
       [7, 5, '2478'.split('')]
-    ])(
-      'getPossibleCellValues(grid, %d, %d) === %j',
-      (rowNum, colNum, expected) => {
-        expect(getPossibleCellValues(grid, rowNum, colNum)).toEqual(expected)
-      }
-    )
+    ])('getPossibleCellValues(grid, %d, %d) === %j', (rowNum, colNum, expected) => {
+      expect(getPossibleCellValues(grid, rowNum, colNum)).toEqual(expected)
+    })
   })
 
   describe('allArraysAreEqual', () => {
@@ -592,9 +539,7 @@ describe('Utilities', () => {
     })
 
     test('should work for any number of arrays', () => {
-      expect(
-        allArraysAreEqual('12345'.split(), '12345'.split(), '12345'.split())
-      ).toBe(true)
+      expect(allArraysAreEqual('12345'.split(), '12345'.split(), '12345'.split())).toBe(true)
     })
 
     test('should return true if only one array is passed', () => {
@@ -633,14 +578,9 @@ describe('Utilities', () => {
       [3, 8, [4, 0]],
       [8, 8, undefined],
       [8, 6, undefined]
-    ])(
-      'getNextCellCoordinates(grid, %d, %d) === %j',
-      (rowNum, colNum, expected) => {
-        expect(getNextEmptyCellCoordinates(grid, rowNum, colNum)).toEqual(
-          expected
-        )
-      }
-    )
+    ])('getNextCellCoordinates(grid, %d, %d) === %j', (rowNum, colNum, expected) => {
+      expect(getNextEmptyCellCoordinates(grid, rowNum, colNum)).toEqual(expected)
+    })
   })
 
   describe('isFilled', () => {
@@ -666,20 +606,20 @@ describe('Utilities', () => {
     })
   })
 
-  describe('gridHasAnyImpossibilities', () => {
-    const { gridHasAnyImpossibilities } = main
+  describe('gridHasAnyDeadEnds', () => {
+    const { gridHasAnyDeadEnds } = main
 
     test('should return false if all empty cells in the grid have a possible value', () => {
-      expect(gridHasAnyImpossibilities(grid)).toBe(false)
+      expect(gridHasAnyDeadEnds(grid)).toBe(false)
     })
 
     test('should return true if there are empty cells for which no value can be placed', () => {
-      expect(gridHasAnyImpossibilities(gridWithImpossibleCells)).toBe(true)
+      expect(gridHasAnyDeadEnds(gridWithImpossibleCells)).toBe(true)
     })
   })
 
-  describe('getBoxAsFlatArray', () => {
-    const { getBoxAsFlatArray } = main
+  describe('flattenBox', () => {
+    const { flattenBox } = main
 
     test.each([
       [0, 0, '91.2...87'.split('')],
@@ -691,14 +631,9 @@ describe('Utilities', () => {
       [6, 0, '..3..947.'.split('')],
       [6, 3, '19......3'.split('')],
       [6, 6, '82...3.16'.split('')]
-    ])(
-      'getBoxAsFlatArray(%d, %d) === %j',
-      (topLeftRowNum, topLeftColNum, expected) => {
-        expect(getBoxAsFlatArray(grid, topLeftRowNum, topLeftColNum)).toEqual(
-          expected
-        )
-      }
-    )
+    ])('flattenBox(%d, %d) === %j', (topLeftRowNum, topLeftColNum, expected) => {
+      expect(flattenBox(grid, topLeftRowNum, topLeftColNum)).toEqual(expected)
+    })
   })
 
   describe('getOtherIndexes', () => {
@@ -734,11 +669,11 @@ describe('Utilities', () => {
   })
 })
 
-describe('boxesAsRowsArray', () => {
-  const { boxesAsRowsArray, stringifyGrid } = main
+describe('flattenBoxes', () => {
+  const { flattenBoxes, stringifyGrid } = main
 
   test('should return the grid with the boxes represented as rows', () => {
-    expect(stringifyGrid(boxesAsRowsArray(grid))).toMatchSnapshot()
+    expect(stringifyGrid(flattenBoxes(grid))).toMatchSnapshot()
   })
 })
 
@@ -758,20 +693,15 @@ describe('unflattenBoxes', () => {
   const { unflattenBoxes } = main
 
   test('should transform the flattened-box grid back to grid by row', () => {
-    expect(main.unflattenBoxes(flattenedBoxGrid)).toEqual(grid)
+    expect(unflattenBoxes(flattenedBoxGrid)).toEqual(grid)
   })
 })
 
 describe('Fill Cells methods', () => {
-  const {
-    stringifyGrid,
-    fillCellsLogically,
-    fillCellsBruteForce,
-    seedGrid
-  } = main
+  const { stringifyGrid, fillCellsLogically, fillCellsBruteForce, seedGrid } = main
   const fileInputHard = fs.readFileSync('./input_hard.txt', 'utf8')
   const gridHard = seedGrid(fileInputHard)
-  const automaticCellsFilledGrid = fillCellsLogically(cloneDeep(gridHard)).grid
+  const automaticCellsFilledGrid = fillCellsLogically(gridHard).grid
   const allCellsFilledGrid = fillCellsBruteForce(automaticCellsFilledGrid).grid
 
   describe('fillCellsLogically', () => {
@@ -786,9 +716,17 @@ describe('Fill Cells methods', () => {
     })
 
     test('should return the original grid if all cells are already filled', () => {
-      expect(
-        stringifyGrid(fillCellsBruteForce(allCellsFilledGrid))
-      ).toMatchSnapshot()
+      expect(stringifyGrid(fillCellsBruteForce(allCellsFilledGrid))).toMatchSnapshot()
     })
+  })
+})
+
+describe.skip('fillCellsBruteForce', () => {
+  test('should match snapshot after processing', () => {
+    expect(stringifyGrid(allCellsFilledGrid)).toMatchSnapshot()
+  })
+
+  test('should return the original grid if all cells are already filled', () => {
+    expect(stringifyGrid(fillCellsBruteForce(allCellsFilledGrid))).toMatchSnapshot()
   })
 })

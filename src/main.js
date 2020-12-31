@@ -6,7 +6,8 @@ const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 const DEBUG = false
 
-const fileInput = fs.readFileSync('./input_very_hard2.txt', 'utf8')
+const inputName = 'input_evil.txt'
+const fileInput = fs.readFileSync(`./${inputName}`, 'utf8')
 
 export function seedGrid(input) {
   return input
@@ -42,10 +43,7 @@ export function rowIsComplete(grid, rowNum) {
 
 export function rowIsValid(grid, rowNum) {
   return allArraysAreEqual(
-    [
-      ...getRowFilledNums(grid, rowNum),
-      ...getRowMissingNums(grid, rowNum)
-    ].sort(),
+    [...getRowFilledNums(grid, rowNum), ...getRowMissingNums(grid, rowNum)].sort(),
     possibleNums
   )
 }
@@ -73,10 +71,7 @@ export function columnIsComplete(grid, columnNum) {
 
 export function columnIsValid(grid, colNum) {
   return allArraysAreEqual(
-    [
-      ...getColumnFilledNums(grid, colNum),
-      ...getColumnMissingNums(grid, colNum)
-    ].sort(),
+    [...getColumnFilledNums(grid, colNum), ...getColumnMissingNums(grid, colNum)].sort(),
     possibleNums
   )
 }
@@ -125,17 +120,15 @@ export function getBoxTopLeftCoordinates(boxNum) {
   return [getBoxTopLeft(boxNum), getTopLeftColumnForBoxNum(boxNum)]
 }
 
-export function getBoxAsFlatArray(grid, topLeftRowNum, topLeftColNum) {
+export function flattenBox(grid, topLeftRowNum, topLeftColNum) {
   return grid
     .slice(topLeftRowNum, topLeftRowNum + 3)
     .map(r => r.slice(topLeftColNum, topLeftColNum + 3))
     .flat()
 }
 
-export function boxesAsRowsArray(grid) {
-  return boxIndexes
-    .map(r => boxIndexes.map(c => getBoxAsFlatArray(grid, r, c)))
-    .flat()
+export function flattenBoxes(grid) {
+  return boxIndexes.map(r => boxIndexes.map(c => flattenBox(grid, r, c))).flat()
 }
 
 export function unflattenBox(boxArray) {
@@ -143,9 +136,7 @@ export function unflattenBox(boxArray) {
 }
 
 export function unflattenBoxes(grid) {
-  let unflattenedGrid = Array.from({ length: GRID_SIZE }, () =>
-    Array.from({ length: GRID_SIZE })
-  )
+  let unflattenedGrid = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }))
 
   grid.forEach((b, bIdx) => {
     const [topLeftRow, topLeftCol] = getBoxTopLeftCoordinates(bIdx)
@@ -161,9 +152,7 @@ export function unflattenBoxes(grid) {
 }
 
 export function boxIsComplete(grid, topLeftRowNum, topLeftColNum) {
-  return getBoxAsFlatArray(grid, topLeftRowNum, topLeftColNum).every(c =>
-    isFilled(c)
-  )
+  return flattenBox(grid, topLeftRowNum, topLeftColNum).every(c => isFilled(c))
 }
 
 export function boxIsValid(grid, topLeftRowNum, topLeftColNum) {
@@ -209,108 +198,81 @@ export function getBoxMissingCells(grid, topLeftRowNum, topLeftColumnNum) {
   )
 }
 
-export function checkCellAgainstOtherAxis(grid, rowNum, colNum, num, curAxis) {
+export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   const columnMissingNums = getColumnMissingNums(grid, colNum)
 
-  // TODO: use swapXY to clean this mess up.
-  const isXAxis = curAxis === axis.x
-  const curAxisMissingNums = isXAxis ? rowMissingNums : columnMissingNums
-  const otherAxisMissingNums = isXAxis ? columnMissingNums : rowMissingNums
-  const curAxisMissingCellsFn = isXAxis
-    ? getRowMissingCells
-    : getColumnMissingCells
-  const otherAxisFilledNumsFn = isXAxis ? getColumnFilledNums : getRowFilledNums
-  const curAxisIndex = isXAxis ? rowNum : colNum
-  const otherAxisIndex = isXAxis ? colNum : rowNum
-
   return (
-    (curAxisMissingNums.length === 1 && curAxisMissingNums[0] === num) ||
-    (curAxisMissingNums.includes(num) &&
-      otherAxisMissingNums.includes(num) &&
-      curAxisMissingCellsFn(grid, curAxisIndex)
-        .filter(cell => cell !== otherAxisIndex)
-        .every(v => otherAxisFilledNumsFn(grid, v).includes(num)) &&
-      getBoxMissingNums(
-        grid,
-        getBoxTopLeft(rowNum),
-        getBoxTopLeft(colNum)
-      ).includes(num))
+    (rowMissingNums.length === 1 && rowMissingNums[0] === num) ||
+    (rowMissingNums.includes(num) &&
+      columnMissingNums.includes(num) &&
+      getRowMissingCells(grid, rowNum)
+        .filter(cell => cell !== colNum)
+        .every(v => getColumnFilledNums(grid, v).includes(num)) &&
+      getBoxMissingNums(grid, getBoxTopLeft(rowNum), getBoxTopLeft(colNum)).includes(num))
   )
 }
 
-export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
-  return checkCellAgainstOtherAxis(grid, rowNum, colNum, num, axis.x)
-}
-
 export function fillRows(grid) {
-  grid.forEach((_, rowNum) => {
-    getRowMissingNums(grid, rowNum).forEach(n => {
-      getRowMissingCells(grid, rowNum).forEach(colNum => {
-        if (cellCanBeDeterminedForRow(grid, rowNum, colNum, n)) {
-          grid[rowNum][colNum] = n
+  let myGrid = cloneDeep(grid)
+
+  myGrid.forEach((_, rowNum) => {
+    getRowMissingNums(myGrid, rowNum).forEach(n => {
+      getRowMissingCells(myGrid, rowNum).forEach(colNum => {
+        if (cellCanBeDeterminedForRow(myGrid, rowNum, colNum, n)) {
+          myGrid[rowNum][colNum] = n
         }
       })
     })
   })
 
-  return grid
-}
-
-export function cellCanBeDeterminedForColumn(grid, rowNum, colNum, num) {
-  return checkCellAgainstOtherAxis(grid, rowNum, colNum, num, axis.y)
+  return myGrid
 }
 
 export function fillColumns(grid) {
-  grid[0].forEach((_, colNum) => {
-    getColumnMissingNums(grid, colNum).forEach(n => {
-      getColumnMissingCells(grid, colNum).forEach(rowNum => {
-        if (cellCanBeDeterminedForColumn(grid, rowNum, colNum, n)) {
-          grid[rowNum][colNum] = n
-        }
-      })
-    })
-  })
-
-  return grid
+  return swapXY(fillRows(swapXY(grid)))
 }
 
 function getBoxIndexes(topLeftRowOrColumn) {
   return [topLeftRowOrColumn, topLeftRowOrColumn + 1, topLeftRowOrColumn + 2]
 }
 
-export function cellCanBeDeterminedForBox(
-  grid,
-  cell,
-  topLeftRow,
-  topLeftColumn,
-  num
-) {
-  const curRow = getBoxCurRow(topLeftRow, cell)
-  const curColumn = getBoxCurColumn(topLeftColumn, cell)
-
-  const rowNeighborsAreFilled = grid[curRow]
+// TODO: test me
+export function rowNeighborsAreFilled(grid, topLeftColumn, curRow, curCol) {
+  return grid[curRow]
     .map((cell, index) => ({ cell, index }))
     .slice(topLeftColumn, topLeftColumn + 3)
-    .filter(({ index }) => index !== curColumn)
+    .filter(({ index }) => index !== curCol)
     .every(({ cell }) => isFilled(cell))
+}
 
-  const rowNeighborsContainNum = getBoxIndexes(topLeftRow)
+// TODO: test me
+export function columnNeighborsAreFilled(grid, topLeftRow, curRow, curCol) {
+  return rowNeighborsAreFilled(swapXY(grid), topLeftRow, curCol, curRow)
+}
+
+// TODO: test me
+export function rowNeighborsContainNumber(grid, topLeftRow, curRow, num) {
+  return getBoxIndexes(topLeftRow)
     .filter(r => r !== curRow)
     .every(r => getRowFilledNums(grid, r).includes(num))
+}
 
-  const columnNeighborsAreFilled = grid
-    .map(r => r[curColumn])
-    .map((cell, index) => ({ cell, index }))
-    .slice(topLeftRow, topLeftRow + 3)
-    .filter(({ index }) => index !== curRow)
-    .every(({ cell }) => isFilled(cell))
-
-  const columnNeighborsContainNum = getBoxIndexes(topLeftColumn)
-    .filter(c => c !== curColumn)
+// TODO: test me
+export function columnNeighborsContainNumber(grid, topLeftCol, curCol, num) {
+  return getBoxIndexes(topLeftCol)
+    .filter(c => c !== curCol)
     .every(c => getColumnFilledNums(grid, c).includes(num))
+}
 
-  const boxMissingNums = getBoxMissingNums(grid, topLeftRow, topLeftColumn)
+export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, num) {
+  const curRow = getBoxCurRow(topLeftRow, cell)
+  const curCol = getBoxCurColumn(topLeftCol, cell)
+  const rNeighborsFilled = rowNeighborsAreFilled(grid, topLeftCol, curRow, curCol)
+  const rNeighborsContainNum = rowNeighborsContainNumber(grid, topLeftRow, curRow, num)
+  const cNeighborsAreFilled = columnNeighborsAreFilled(grid, topLeftRow, curRow, curCol)
+  const cNeighborsContainNum = columnNeighborsContainNumber(grid, topLeftCol, curCol, num)
+  const boxMissingNums = getBoxMissingNums(grid, topLeftRow, topLeftCol)
 
   return (
     // this is the only missing number - we're done.
@@ -318,32 +280,34 @@ export function cellCanBeDeterminedForBox(
     // bail if number is already in the box, row, or column
     (boxMissingNums.includes(num) &&
       getRowMissingNums(grid, curRow).includes(num) &&
-      getColumnMissingNums(grid, curColumn).includes(num) &&
+      getColumnMissingNums(grid, curCol).includes(num) &&
       // Both other column cells in box are determined and both other complete columns have the number
-      ((columnNeighborsAreFilled && columnNeighborsContainNum) ||
+      ((cNeighborsAreFilled && cNeighborsContainNum) ||
         // Both other row cells in box are determined and both other complete rows have the number
-        (rowNeighborsAreFilled && rowNeighborsContainNum) ||
+        (rNeighborsFilled && rNeighborsContainNum) ||
         // Both other complete rows and both other complete columns have the number
-        (rowNeighborsContainNum && columnNeighborsContainNum)))
+        (rNeighborsContainNum && cNeighborsContainNum)))
   )
 }
 
 export function fillBoxes(grid) {
-  for (let topLeftRow = 0; topLeftRow < grid.length; topLeftRow += 3) {
-    for (let topLeftCol = 0; topLeftCol < grid[0].length; topLeftCol += 3) {
-      getBoxMissingNums(grid, topLeftRow, topLeftCol).forEach(n => {
-        getBoxMissingCells(grid, topLeftRow, topLeftCol).forEach(cell => {
+  let myGrid = cloneDeep(grid)
+
+  for (let topLeftRow = 0; topLeftRow < myGrid.length; topLeftRow += 3) {
+    for (let topLeftCol = 0; topLeftCol < myGrid[0].length; topLeftCol += 3) {
+      getBoxMissingNums(myGrid, topLeftRow, topLeftCol).forEach(n => {
+        getBoxMissingCells(myGrid, topLeftRow, topLeftCol).forEach(cell => {
           const curRow = getBoxCurRow(topLeftRow, cell)
           const curColumn = getBoxCurColumn(topLeftCol, cell)
 
-          if (cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, n))
-            grid[curRow][curColumn] = n
+          if (cellCanBeDeterminedForBox(myGrid, cell, topLeftRow, topLeftCol, n))
+            myGrid[curRow][curColumn] = n
         })
       })
     }
   }
 
-  return grid
+  return myGrid
 }
 
 export function getFilledCellCount(grid) {
@@ -351,13 +315,11 @@ export function getFilledCellCount(grid) {
 }
 
 export function gridIsValid(grid) {
-  return (
-    everyRowIsValid(grid) && everyColumnIsValid(grid) && everyBoxIsValid(grid)
-  )
+  return everyRowIsValid(grid) && everyColumnIsValid(grid) && everyBoxIsValid(grid)
 }
 
 export function gridIsComplete(grid) {
-  return gridIsValid(grid ) && grid.every(r => r.every(c => isFilled(c)))
+  return gridIsValid(grid) && grid.every(r => r.every(c => isFilled(c)))
 }
 
 /* istanbul ignore next */
@@ -374,9 +336,7 @@ export function allArraysAreEqual(...arrayOfArrays) {
   return arrayOfArrays
     .slice(1)
     .every(
-      a =>
-        a.length === firstArr.length &&
-        a.every((element, idx) => element === firstArr[idx])
+      a => a.length === firstArr.length && a.every((element, idx) => element === firstArr[idx])
     )
 }
 
@@ -408,31 +368,25 @@ export function findMatches(arr) {
   }))
 }
 
-function narrowPossibles(matches, possiblesGrid) {
+function whittlePossibles(matches, possiblesGrid) {
   let possibleValsGrid = cloneDeep(possiblesGrid)
 
   for (let n = 2; n < GRID_SIZE; n++) {
     matches.forEach((m, rowIdx) => {
-      const matchesOfSizeN = m.filter(
-        r => r.matches.length > 0 && r.possibles.length === n
-      )
+      const matchesOfSizeN = m.filter(r => r.matches.length > 0 && r.possibles.length === n)
 
       if (matchesOfSizeN.length === n) {
-        const matchingSets = getUniqueArrays(
-          ...matchesOfSizeN.map(m => m.possibles)
-        )
+        const matchingSets = getUniqueArrays(...matchesOfSizeN.map(m => m.possibles))
 
         matchingSets.forEach(possibles => {
-          const setIndexes = [
-            ...new Set(matchesOfSizeN.map(m => m.matches).flat())
-          ]
+          const setIndexes = [...new Set(matchesOfSizeN.map(m => m.matches).flat())]
 
           allIndexes
             .filter(n => !setIndexes.includes(n))
             .forEach(colIdx => {
-              possibleValsGrid[rowIdx][colIdx] = possibleValsGrid[rowIdx][
-                colIdx
-              ].filter((v, _, a) => n > a.length || !possibles.includes(v))
+              possibleValsGrid[rowIdx][colIdx] = possibleValsGrid[rowIdx][colIdx].filter(
+                (v, _, a) => n > a.length || !possibles.includes(v)
+              )
             })
         })
       }
@@ -443,7 +397,7 @@ function narrowPossibles(matches, possiblesGrid) {
 }
 
 export function processRowMatchingSets(possibleValsGrid) {
-  return narrowPossibles(possibleValsGrid.map(findMatches), possibleValsGrid)
+  return whittlePossibles(possibleValsGrid.map(findMatches), possibleValsGrid)
 }
 
 export function processColumnMatchingSets(possibleValsGrid) {
@@ -451,14 +405,14 @@ export function processColumnMatchingSets(possibleValsGrid) {
     .map((_, cIdx) => possibleValsGrid.map(r => r[cIdx]))
     .map(findMatches)
 
-  return swapXY(narrowPossibles(columnMatches, swapXY(possibleValsGrid)))
+  return swapXY(whittlePossibles(columnMatches, swapXY(possibleValsGrid)))
 }
 
 export function processBoxMatchingSets(possibleValsGrid) {
-  const possibleValsBoxesAsRows = boxesAsRowsArray(possibleValsGrid)
+  const possibleValsBoxesAsRows = flattenBoxes(possibleValsGrid)
   const boxMatches = possibleValsBoxesAsRows.map(findMatches)
 
-  return unflattenBoxes(narrowPossibles(boxMatches, possibleValsBoxesAsRows))
+  return unflattenBoxes(whittlePossibles(boxMatches, possibleValsBoxesAsRows))
 }
 
 export function processMatchingSets(possibleValsGrid) {
@@ -479,38 +433,26 @@ export function getOtherIndexes(i) {
   return allIndexes.filter(p => p < i * 3 || p > i * 3 + 2)
 }
 
-export function processBoxIntersections(
-  possibleValsGrid,
-  topLeftRowNum,
-  topLeftColNum
-) {
+export function processBoxIntersections(possibleValsGrid, topLeftRowNum, topLeftColNum) {
   let myGrid = cloneDeep(possibleValsGrid)
-  const flatBox = getBoxAsFlatArray(myGrid, topLeftRowNum, topLeftColNum)
+  const flatBox = flattenBox(myGrid, topLeftRowNum, topLeftColNum)
 
   miniGridIndexes.forEach(i => {
     const row = myGrid[topLeftRowNum + i]
     const boxOtherIndexes = getOtherIndexes(i)
     const outsideOtherIndexes = getOtherIndexes(topLeftColNum / 3)
-    const outsideBoxImpossibilities = getImpossibilities(
-      outsideOtherIndexes.map(i => row[i])
-    )
-    const insideBoxImpossibilities = getImpossibilities(
-      boxOtherIndexes.map(i => flatBox[i])
-    )
+    const outsideBoxImpossibilities = getImpossibilities(outsideOtherIndexes.map(i => row[i]))
+    const insideBoxImpossibilities = getImpossibilities(boxOtherIndexes.map(i => flatBox[i]))
 
     boxOtherIndexes.forEach(idx => {
       const gridRow = getBoxCurRow(topLeftRowNum, idx)
       const gridCol = getBoxCurColumn(topLeftColNum, idx)
 
-      myGrid[gridRow][gridCol] = flatBox[idx].filter(
-        n => !outsideBoxImpossibilities.includes(n)
-      )
+      myGrid[gridRow][gridCol] = flatBox[idx].filter(n => !outsideBoxImpossibilities.includes(n))
     })
 
     outsideOtherIndexes.forEach(idx => {
-      myGrid[topLeftRowNum + i][idx] = row[idx].filter(
-        n => !insideBoxImpossibilities.includes(n)
-      )
+      myGrid[topLeftRowNum + i][idx] = row[idx].filter(n => !insideBoxImpossibilities.includes(n))
     })
   })
 
@@ -519,7 +461,7 @@ export function processBoxIntersections(
 
 export function allBoxIntersections(possibleValsGrid) {
   let myGrid = cloneDeep(possibleValsGrid)
-  
+
   boxIndexes.forEach(r => {
     boxIndexes.forEach(c => {
       myGrid = processBoxIntersections(myGrid, r, c)
@@ -531,7 +473,7 @@ export function allBoxIntersections(possibleValsGrid) {
 
 export function rowAndColBoxIntersections(possibleValsGrid) {
   let myGrid = cloneDeep(possibleValsGrid)
-  
+
   myGrid = allBoxIntersections(myGrid)
   myGrid = swapXY(allBoxIntersections(swapXY(myGrid)))
 
@@ -545,11 +487,7 @@ export function gridPossibleValues(grid) {
 
       const rowMissingNums = getRowMissingNums(grid, rIdx)
       const colMissingNums = getColumnMissingNums(grid, cIdx)
-      const boxMissingNums = getBoxMissingNums(
-        grid,
-        getBoxTopLeft(rIdx),
-        getBoxTopLeft(cIdx)
-      )
+      const boxMissingNums = getBoxMissingNums(grid, getBoxTopLeft(rIdx), getBoxTopLeft(cIdx))
 
       return arrayIntersection(rowMissingNums, colMissingNums, boxMissingNums)
     })
@@ -562,19 +500,11 @@ export function gridPossibleValues(grid) {
 }
 
 export function getPossibleCellValues(grid, rowNum, colNum) {
-  // TODO: look into how to use gridPossibleVals efficiently here
-
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   const colMissingNums = getColumnMissingNums(grid, colNum)
-  const boxMissingNums = getBoxMissingNums(
-    grid,
-    getBoxTopLeft(rowNum),
-    getBoxTopLeft(colNum)
-  )
+  const boxMissingNums = getBoxMissingNums(grid, getBoxTopLeft(rowNum), getBoxTopLeft(colNum))
 
-  return [...new Set(rowMissingNums)]
-    .filter(a => new Set(colMissingNums).has(a))
-    .filter(b => new Set(boxMissingNums).has(b))
+  return arrayIntersection(rowMissingNums, colMissingNums, boxMissingNums)
 }
 
 export function getNextEmptyCellCoordinates(grid, rowNum, colNum) {
@@ -596,18 +526,13 @@ export function getNextEmptyCellCoordinates(grid, rowNum, colNum) {
   return getNextEmptyCellCoordinates(grid, newRowNum, newColNum)
 }
 
-export function gridHasAnyImpossibilities(grid) {
-  for (let i = 0; i < GRID_SIZE; i++) {
-    for (let j = 0; j < GRID_SIZE; j++) {
-      if (
-        !isFilled(grid[i][j]) &&
-        getPossibleCellValues(grid, i, j).length === 0
-      ) {
-        return true
-      }
-    }
-  }
-  return false
+export function gridHasAnyDeadEnds(grid) {
+  return grid.some((r, rIdx) =>
+    r.some(
+      (_, cIdx) =>
+        !isFilled(grid[rIdx][cIdx]) && getPossibleCellValues(grid, rIdx, cIdx).length === 0
+    )
+  )
 }
 
 export function fillCellsLogically(grid) {
@@ -616,10 +541,7 @@ export function fillCellsLogically(grid) {
   let filledCellCount = getFilledCellCount(updatedGrid)
   let loopCount = 0
 
-  while (
-    filledCellCount > prevFilledCellCount &&
-    !gridIsComplete(updatedGrid)
-  ) {
+  while (filledCellCount > prevFilledCellCount && !gridIsComplete(updatedGrid)) {
     loopCount++
     prevFilledCellCount = filledCellCount
 
@@ -647,7 +569,7 @@ export function fillCellsLogically(grid) {
     filledCellCount = getFilledCellCount(updatedGrid)
   }
 
-  return {grid: updatedGrid, iterations: loopCount}
+  return { grid: updatedGrid, iterations: loopCount }
 }
 
 export function fillCellsBruteForce(grid) {
@@ -667,7 +589,7 @@ export function fillCellsBruteForce(grid) {
       let colNum = rowNum === curRow ? curCol : 0
       for (; colNum < GRID_SIZE; colNum++) {
         if (!isFilled(curGrid[rowNum][colNum])) {
-          if (gridHasAnyImpossibilities(curGrid)) {
+          if (gridHasAnyDeadEnds(curGrid)) {
             return
           }
 
@@ -676,11 +598,7 @@ export function fillCellsBruteForce(grid) {
           cellPossibles.forEach(possibleNum => {
             curGrid[rowNum][colNum] = possibleNum
 
-            const nextCoordinates = getNextEmptyCellCoordinates(
-              grid,
-              rowNum,
-              colNum
-            )
+            const nextCoordinates = getNextEmptyCellCoordinates(grid, rowNum, colNum)
 
             if (!nextCoordinates) finalGrid = curGrid
 
@@ -695,7 +613,7 @@ export function fillCellsBruteForce(grid) {
   }
 
   recurse(grid)
-  return {grid: finalGrid, recursiveIterations: count}
+  return { grid: finalGrid, recursiveIterations: count }
 }
 
 export function stringifyGrid(grid) {
@@ -712,22 +630,16 @@ export function stringifyGrid(grid) {
     return str.substring(0, i) + char + str.substring(i + 1)
   }
 
-  let strGrid = horSeparator.repeat(
-    (GRID_SIZE - 1) * innerSeparator.length + GRID_SIZE + pad
-  )
+  let strGrid = horSeparator.repeat((GRID_SIZE - 1) * innerSeparator.length + GRID_SIZE + pad)
 
   for (let row = 0; row < GRID_SIZE; row++) {
-    let logStr = grid[row]
-      .map(c => (isFilled(c) ? c : ' '))
-      .join(innerSeparator)
+    let logStr = grid[row].map(c => (isFilled(c) ? c : ' ')).join(innerSeparator)
 
     logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
     logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
 
     strGrid += `\n${rowBegin}${logStr}${rowEnd}\n`
-    strGrid += ([2, 5].includes(row) ? boxSeparatorHor : horSeparator).repeat(
-      logStr.length + pad
-    )
+    strGrid += ([2, 5].includes(row) ? boxSeparatorHor : horSeparator).repeat(logStr.length + pad)
   }
 
   return strGrid
@@ -742,10 +654,11 @@ export function printGrid(grid) {
 export function run() {
   const t1 = Date.now()
   const startingGrid = seedGrid(fileInput)
-  console.log('Starting Grid')
+  console.log('Input Name:', inputName)
+  console.log('\nStarting Grid')
   printGrid(startingGrid)
 
-  const {grid: logicallyFilledGrid, iterations} = fillCellsLogically(startingGrid)
+  const { grid: logicallyFilledGrid, iterations } = fillCellsLogically(startingGrid)
   console.log('\nAfter logically filling cells:')
   printGrid(logicallyFilledGrid)
   const t2 = Date.now()
@@ -766,11 +679,8 @@ export function run() {
 
   console.log('\nStats:')
   console.log('Starting boxes:', getFilledCellCount(startingGrid))
-  console.log('LogicIterations', iterations)
-  console.log(
-    'After logically filling cells:',
-    getFilledCellCount(logicallyFilledGrid)
-  )
+  console.log('Logic Iterations', iterations)
+  console.log('After logically filling cells:', getFilledCellCount(logicallyFilledGrid))
   console.log('Logic time:', t2 - t1, 'ms')
   if (recursiveIterations) console.log('Brute force iterations:', recursiveIterations)
   if (t3) console.log('Brute force time:', t3 - t2, 'ms')
