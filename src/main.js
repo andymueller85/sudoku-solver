@@ -6,7 +6,7 @@ const GRID_SIZE = 9
 const EMPTY_CELL = '.'
 const DEBUG = false
 
-const fileInput = fs.readFileSync('./input_very_hard.txt', 'utf8')
+const fileInput = fs.readFileSync('./input_very_hard2.txt', 'utf8')
 
 export function seedGrid(input) {
   return input
@@ -213,6 +213,7 @@ export function checkCellAgainstOtherAxis(grid, rowNum, colNum, num, curAxis) {
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   const columnMissingNums = getColumnMissingNums(grid, colNum)
 
+  // TODO: use swapXY to clean this mess up.
   const isXAxis = curAxis === axis.x
   const curAxisMissingNums = isXAxis ? rowMissingNums : columnMissingNums
   const otherAxisMissingNums = isXAxis ? columnMissingNums : rowMissingNums
@@ -353,6 +354,10 @@ export function gridIsValid(grid) {
   return (
     everyRowIsValid(grid) && everyColumnIsValid(grid) && everyBoxIsValid(grid)
   )
+}
+
+export function gridIsComplete(grid) {
+  return gridIsValid(grid ) && grid.every(r => r.every(c => isFilled(c)))
 }
 
 /* istanbul ignore next */
@@ -512,13 +517,23 @@ export function processBoxIntersections(
   return myGrid
 }
 
-export function processAllBoxIntersections(possibleValsGrid) {
+export function allBoxIntersections(possibleValsGrid) {
   let myGrid = cloneDeep(possibleValsGrid)
+  
   boxIndexes.forEach(r => {
     boxIndexes.forEach(c => {
       myGrid = processBoxIntersections(myGrid, r, c)
     })
   })
+
+  return myGrid
+}
+
+export function rowAndColBoxIntersections(possibleValsGrid) {
+  let myGrid = cloneDeep(possibleValsGrid)
+  
+  myGrid = allBoxIntersections(myGrid)
+  myGrid = swapXY(allBoxIntersections(swapXY(myGrid)))
 
   return myGrid
 }
@@ -540,10 +555,8 @@ export function gridPossibleValues(grid) {
     })
   )
 
-  // stealing some strategies from
-  // https://medium.com/@eneko/solving-sudoku-puzzles-programmatically-with-logic-and-without-brute-force-b4e8b837d796
   possibleValsGrid = processMatchingSets(possibleValsGrid)
-  possibleValsGrid = processAllBoxIntersections(possibleValsGrid)
+  possibleValsGrid = rowAndColBoxIntersections(possibleValsGrid)
 
   return possibleValsGrid
 }
@@ -597,7 +610,7 @@ export function gridHasAnyImpossibilities(grid) {
   return false
 }
 
-export function fillAutomaticCells(grid) {
+export function fillCellsLogically(grid) {
   let updatedGrid = cloneDeep(grid)
   let prevFilledCellCount = 0
   let filledCellCount = getFilledCellCount(updatedGrid)
@@ -605,7 +618,7 @@ export function fillAutomaticCells(grid) {
 
   while (
     filledCellCount > prevFilledCellCount &&
-    filledCellCount < GRID_SIZE ** 2
+    !gridIsComplete(updatedGrid)
   ) {
     loopCount++
     prevFilledCellCount = filledCellCount
@@ -634,10 +647,10 @@ export function fillAutomaticCells(grid) {
     filledCellCount = getFilledCellCount(updatedGrid)
   }
 
-  return updatedGrid
+  return {grid: updatedGrid, iterations: loopCount}
 }
 
-export function fillInAllCellsRecursive(grid) {
+export function fillCellsBruteForce(grid) {
   if (getFilledCellCount(grid) === GRID_SIZE ** 2) return grid
   let finalGrid = undefined
   let count = 0
@@ -682,8 +695,7 @@ export function fillInAllCellsRecursive(grid) {
   }
 
   recurse(grid)
-  console.log({ count })
-  return finalGrid
+  return {grid: finalGrid, recursiveIterations: count}
 }
 
 export function stringifyGrid(grid) {
@@ -733,20 +745,33 @@ export function run() {
   console.log('Starting Grid')
   printGrid(startingGrid)
 
-  const automaticCellsFilledGrid = fillAutomaticCells(startingGrid)
-  console.log('After automatic cells filled:')
-  printGrid(automaticCellsFilledGrid)
+  const {grid: logicallyFilledGrid, iterations} = fillCellsLogically(startingGrid)
+  console.log('\nAfter logically filling cells:')
+  printGrid(logicallyFilledGrid)
+  const t2 = Date.now()
 
-  const finalGrid = fillInAllCellsRecursive(automaticCellsFilledGrid)
-  console.log('\nAfter filling in the rest')
-  printGrid(finalGrid)
+  let recursiveIterations = undefined
+  let t3 = undefined
+  if (gridIsComplete(logicallyFilledGrid)) {
+    console.log('\n😎🧩 Puzzle Solved 🧩😎')
+  } else {
+    console.log('\n🕵️‍♀️🧩 Still some work to do... 🧩🕵️‍♀️')
+    const bruteForceResults = fillCellsBruteForce(logicallyFilledGrid)
+    const finalGrid = bruteForceResults.grid
+    recursiveIterations = finalGrid.recursiveIterations
+    console.log('\nAfter brute force recursion')
+    printGrid(finalGrid)
+    t3 = Date.now()
+  }
 
-  console.log('Stats:')
+  console.log('\nStats:')
   console.log('Starting boxes:', getFilledCellCount(startingGrid))
+  console.log('LogicIterations', iterations)
   console.log(
-    'After automatic cells filled:',
-    getFilledCellCount(automaticCellsFilledGrid)
+    'After logically filling cells:',
+    getFilledCellCount(logicallyFilledGrid)
   )
-  // console.log('After rest:', getFilledCellCount(finalGrid))
-  console.log('Time:', Date.now() - t1)
+  console.log('Logic time:', t2 - t1, 'ms')
+  if (recursiveIterations) console.log('Brute force iterations:', recursiveIterations)
+  if (t3) console.log('Brute force time:', t3 - t2, 'ms')
 }

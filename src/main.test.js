@@ -765,8 +765,8 @@ describe('unflattenBoxes', () => {
 describe('Fill Cells methods', () => {
   const {
     stringifyGrid,
-    fillAutomaticCells,
-    fillInAllCellsRecursive,
+    fillCellsLogically: fillAutomaticCells,
+    fillCellsBruteForce: fillInAllCellsRecursive,
     seedGrid
   } = main
   const fileInputHard = fs.readFileSync('./input_hard.txt', 'utf8')
