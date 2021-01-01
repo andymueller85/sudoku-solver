@@ -1,7 +1,7 @@
 import fs from 'fs'
 import * as helpers from './helpers.js'
-import { stringifyGrid, seedGrid } from './main.js'
 
+const { seedGrid, stringifyGrid } = helpers
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)
 

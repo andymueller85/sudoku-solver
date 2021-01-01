@@ -2,6 +2,7 @@ export const GRID_SIZE = 9
 export const possibleNums = '123456789'.split('')
 export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
 export const boxIndexes = [0, 3, 6]
+export const miniGridIndexes = [0, 1, 2]
 
 /************** General helper fns ****************/
 export function isFilled(cell) {
@@ -72,6 +73,47 @@ export function getNextEmptyCellCoordinates(grid, rowNum, colNum) {
   if (!isFilled(grid[newRowNum][newColNum])) return [newRowNum, newColNum]
 
   return getNextEmptyCellCoordinates(grid, newRowNum, newColNum)
+}
+
+export function stringifyGrid(grid) {
+  const vertSeparator = '|'
+  const innerSeparator = `  ${vertSeparator}  `
+  const rowBegin = `${vertSeparator}  `
+  const rowEnd = `  ${vertSeparator}`
+  const pad = rowBegin.length + rowEnd.length
+  const horSeparator = '-'
+  const boxSeparatorVert = String.fromCharCode(parseInt('275A', 16))
+  const boxSeparatorHor = '='
+
+  function replaceCharAt(str, i, char) {
+    return str.substring(0, i) + char + str.substring(i + 1)
+  }
+
+  let strGrid = horSeparator.repeat((GRID_SIZE - 1) * innerSeparator.length + GRID_SIZE + pad)
+
+  for (let row = 0; row < GRID_SIZE; row++) {
+    let logStr = grid[row].map(c => (isFilled(c) ? c : ' ')).join(innerSeparator)
+
+    logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
+    logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
+
+    strGrid += `\n${rowBegin}${logStr}${rowEnd}\n`
+    strGrid += ([2, 5].includes(row) ? boxSeparatorHor : horSeparator).repeat(logStr.length + pad)
+  }
+
+  return strGrid
+}
+
+/* istanbul ignore next */
+export function printGrid(grid) {
+  console.log(stringifyGrid(grid))
+}
+
+export function seedGrid(input) {
+  return input
+    .split(/\r?\n/)
+    .filter(r => r)
+    .map(r => [...r].map(c => c))
 }
 
 /************** Box helper fns ****************/
