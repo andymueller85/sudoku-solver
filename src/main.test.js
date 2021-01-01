@@ -69,38 +69,6 @@ describe('Row Operations', () => {
     })
   })
 
-  describe('getRowFilledNums', () => {
-    const { getRowFilledNums } = main
-
-    test('should return the elements of a row that are filled', () => {
-      expect(getRowFilledNums(grid, 0)).toEqual('91437'.split(''))
-    })
-
-    test('should work for empty row', () => {
-      expect(getRowFilledNums(firstRowEmptyGrid, 0)).toEqual([])
-    })
-
-    test('should work for full row', () => {
-      expect(getRowFilledNums(firstRowCompleteGrid, 0)).toEqual(main.possibleNums)
-    })
-  })
-
-  describe('getRowMissingNums', () => {
-    const { getRowMissingNums } = main
-
-    test('should return all elements of possible values that do not exist in the row', () => {
-      expect(getRowMissingNums(grid, 0)).toEqual('2568'.split(''))
-    })
-
-    test('should work for an empty row', () => {
-      expect(getRowMissingNums(firstRowEmptyGrid, 0)).toEqual(main.possibleNums)
-    })
-
-    test('should work for a full row', () => {
-      expect(getRowMissingNums(firstRowCompleteGrid, 0)).toEqual([])
-    })
-  })
-
   describe('getRowMissingCells', () => {
     const { getRowMissingCells } = main
 
@@ -118,7 +86,49 @@ describe('Row Operations', () => {
   })
 })
 
-describe('C olumn Operations ', () => {
+describe('Array Operations', () => {
+  describe('getFilledNums', () => {
+    const { getFilledNums } = main
+
+    test('should return the elements of a group that are filled', () => {
+      expect(getFilledNums(grid[0])).toEqual('91437'.split(''))
+    })
+
+    test('should work for empty group', () => {
+      expect(getFilledNums(firstRowEmptyGrid[0])).toEqual([])
+    })
+
+    test('should work for full group', () => {
+      expect(getFilledNums(firstRowCompleteGrid[0])).toEqual(main.possibleNums)
+    })
+  })
+
+  describe('getMissingNums', () => {
+    const { getMissingNums } = main
+
+    test('should return all elements of possible values that do not exist in the group', () => {
+      expect(getMissingNums(grid[0])).toEqual('2568'.split(''))
+    })
+
+    test('should work for an empty group', () => {
+      expect(getMissingNums(firstRowEmptyGrid[0])).toEqual(main.possibleNums)
+    })
+
+    test('should work for a full group', () => {
+      expect(getMissingNums(firstRowCompleteGrid[0])).toEqual([])
+    })
+  })
+})
+
+describe('Column Operations ', () => {
+  describe('getColumnArray', () => {
+    const { getColumnArray } = main
+
+    test('should return the specified column as an array', () => {
+      expect(getColumnArray(grid, 0)).toEqual('92......4'.split(''))
+    })
+  })
+
   describe('columnIsComplete', () => {
     const { columnIsComplete } = main
 
@@ -595,14 +605,14 @@ describe('Utilities', () => {
     })
   })
 
-  describe('getArrayMissingCells', () => {
-    const { getArrayMissingCells } = main
+  describe('getMissingCells', () => {
+    const { getMissingCells } = main
     test.each([
       ['12.456..9'.split(''), [2, 6, 7]],
       ['.........'.split(''), [0, 1, 2, 3, 4, 5, 6, 7, 8]],
       ['123456789'.split(''), []]
-    ])('getArrayMissingCells(%j) === %j', (arr, expected) => {
-      expect(getArrayMissingCells(arr)).toEqual(expected)
+    ])('getMissingCells(%j) === %j', (arr, expected) => {
+      expect(getMissingCells(arr)).toEqual(expected)
     })
   })
 
