@@ -2,10 +2,6 @@ import fs from 'fs'
 import { expect } from '@jest/globals'
 import * as main from './main.js'
 import { getGridPossibleValues, seedGrid, stringifyGrid } from './helpers/helpers.js'
-import { fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers.js'
-import { fillCellsLogically } from './main'
-
-const fileInput = fs.readFileSync('./input.txt', 'utf8')
 
 describe('Orchestration functions', () => {
   const fileInputHard = fs.readFileSync('./input_hard.txt', 'utf8')
