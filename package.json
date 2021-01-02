@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "install:frozen": "yarn --frozen-lockfile",
-    "start": "node .\/src\/index.js -r -esm",
+    "start": "node ./src/index.js -r -esm",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "yarn test --watch",
     "test:coverage": "yarn test --coverage",
@@ -24,7 +24,8 @@
   "homepage": "https://github.com/andymueller85/sudoku-solver#readme",
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "jest": "^26.6.3"
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1"
   },
   "dependencies": {
     "lodash": "^4.17.20"

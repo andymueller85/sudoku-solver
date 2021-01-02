@@ -28,8 +28,4 @@ describe('Box intersection solver functions', () => {
   describe('rowAndColBoxIntersections', () => {
     test.todo('rowAndColBoxIntersections')
   })
-
-  describe('getGridPossibleValues', () => {
-    test.todo('getGridPossibleValues')
-  })
 })

@@ -12,7 +12,6 @@ import {
   getMissingNums,
   getRowMissingCells,
   getRowMissingNums,
-  isFilled,
   rowNeighborsAreFilled,
   rowNeighborsContainNumber,
   swapXY
@@ -20,19 +19,6 @@ import {
 
 const { cloneDeep } = lodash
 
-export function applyDefinites(grid, possibleValsGrid) {
-  let myGrid = cloneDeep(grid)
-
-  possibleValsGrid.forEach((r, rIdx) =>
-    r.forEach((c, cIdx) => {
-      if (!isFilled(myGrid[rIdx][cIdx])) {
-        if (c.length === 1) myGrid[rIdx][cIdx] = c[0]
-      }
-    })
-  )
-
-  return myGrid
-}
 
 /************** cell-filling fns - rows & cols ****************/
 export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
@@ -75,10 +61,10 @@ export function fillColumns(grid) {
 export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, num) {
   const curRow = getBoxCurRow(topLeftRow, cell)
   const curCol = getBoxCurColumn(topLeftCol, cell)
-  const rNeighborsFilled = rowNeighborsAreFilled(grid, topLeftCol, curRow, curCol)
-  const rNeighborsContainNum = rowNeighborsContainNumber(grid, topLeftRow, curRow, num)
-  const cNeighborsAreFilled = columnNeighborsAreFilled(grid, topLeftRow, curRow, curCol)
-  const cNeighborsContainNum = columnNeighborsContainNumber(grid, topLeftCol, curCol, num)
+  const rNeighborsFilled = rowNeighborsAreFilled(grid, curRow, curCol)
+  const rNeighborsContainNum = rowNeighborsContainNumber(grid, curRow, num)
+  const cNeighborsAreFilled = columnNeighborsAreFilled(grid, curRow, curCol)
+  const cNeighborsContainNum = columnNeighborsContainNumber(grid, curCol, num)
   const boxMissingNums = getBoxMissingNums(grid, topLeftRow, topLeftCol)
 
   return (

@@ -1,33 +1,132 @@
 import fs from 'fs'
 import { expect } from '@jest/globals'
 import * as main from './main.js'
-import { seedGrid, stringifyGrid } from './helpers/helpers.js'
+import { getGridPossibleValues, seedGrid, stringifyGrid } from './helpers/helpers.js'
+import { fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers.js'
+import { fillCellsLogically } from './main'
 
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
-
 
 describe('Orchestration functions', () => {
   const fileInputHard = fs.readFileSync('./input_hard.txt', 'utf8')
   const gridHard = seedGrid(fileInputHard)
+  describe('applyDefinites', () => {
+    const { applyDefinites } = main
+
+    test('should populate grid where there is only one possibility for a cell', () => {
+      const possibleVals = getGridPossibleValues(gridHard)
+
+      expect(stringifyGrid(applyDefinites(gridHard, possibleVals))).toMatchInlineSnapshot(`
+        "-------------------------------------------------------
+        |     |     |     ❚     |  9  |  6  ❚     |  7  |     |
+        -------------------------------------------------------
+        |     |     |  4  ❚     |     |     ❚     |     |  9  |
+        -------------------------------------------------------
+        |     |     |     ❚     |  1  |  5  ❚  4  |     |     |
+        =======================================================
+        |     |     |     ❚     |     |  9  ❚     |  4  |  8  |
+        -------------------------------------------------------
+        |     |  6  |  1  ❚     |  3  |     ❚  5  |  2  |     |
+        -------------------------------------------------------
+        |  8  |  4  |     ❚  7  |     |     ❚     |     |     |
+        =======================================================
+        |     |     |  2  ❚  5  |  4  |     ❚     |     |     |
+        -------------------------------------------------------
+        |  7  |     |     ❚     |     |  2  ❚  3  |     |     |
+        -------------------------------------------------------
+        |     |  5  |     ❚  1  |  8  |     ❚     |     |     |
+        -------------------------------------------------------"
+      `)
+    })
+  })
 
   describe('fillCellsLogically', () => {
     const { fillCellsLogically } = main
 
     test('should match snapshot after processing', () => {
-      expect(stringifyGrid(fillCellsLogically(gridHard).grid)).toMatchSnapshot()
+      expect(stringifyGrid(fillCellsLogically(gridHard).grid)).toMatchInlineSnapshot(`
+        "-------------------------------------------------------
+        |  1  |  8  |  3  ❚  4  |  9  |  6  ❚  2  |  7  |  5  |
+        -------------------------------------------------------
+        |  5  |  2  |  4  ❚  3  |  7  |  8  ❚  6  |  1  |  9  |
+        -------------------------------------------------------
+        |  6  |  7  |  9  ❚  2  |  1  |  5  ❚  4  |  8  |  3  |
+        =======================================================
+        |  2  |  3  |  7  ❚  6  |  5  |  9  ❚  1  |  4  |  8  |
+        -------------------------------------------------------
+        |  9  |  6  |  1  ❚  8  |  3  |  4  ❚  5  |  2  |  7  |
+        -------------------------------------------------------
+        |  8  |  4  |  5  ❚  7  |  2  |  1  ❚  9  |  3  |  6  |
+        =======================================================
+        |  3  |  9  |  2  ❚  5  |  4  |  7  ❚  8  |  6  |  1  |
+        -------------------------------------------------------
+        |  7  |  1  |  8  ❚  9  |  6  |  2  ❚  3  |  5  |  4  |
+        -------------------------------------------------------
+        |  4  |  5  |  6  ❚  1  |  8  |  3  ❚  7  |  9  |  2  |
+        -------------------------------------------------------"
+      `)
     })
   })
 
-  describe.skip('fillCellsBruteForce', () => {
-    const logicallyFilledGrid = fillCellsLogically(gridHard).grid
-    const allCellsFilledGrid = fillCellsBruteForce(logicallyFilledGrid).grid
+  describe('fillCellsBruteForce', () => {
+    const { fillCellsBruteForce, fillCellsLogically } = main
+    const almostSolvedGrid = fillCellsLogically(gridHard).grid
+    almostSolvedGrid[0][0] = '.'
+    almostSolvedGrid[3][7] = '.'
+    almostSolvedGrid[2][8] = '.'
+    almostSolvedGrid[4][0] = '.'
+    almostSolvedGrid[8][3] = '.'
+    almostSolvedGrid[1][7] = '.'
+    almostSolvedGrid[5][5] = '.'
 
-    test('should match snapshot after processing', () => {
-      expect(stringifyGrid(allCellsFilledGrid)).toMatchSnapshot()
+    const allCellsFilledGrid = fillCellsBruteForce(almostSolvedGrid).grid
+
+    test('should be solved and match snapshot after processing', () => {
+      expect(stringifyGrid(allCellsFilledGrid)).toMatchInlineSnapshot(`
+        "-------------------------------------------------------
+        |  1  |  8  |  3  ❚  4  |  9  |  6  ❚  2  |  7  |  5  |
+        -------------------------------------------------------
+        |  5  |  2  |  4  ❚  3  |  7  |  8  ❚  6  |  1  |  9  |
+        -------------------------------------------------------
+        |  6  |  7  |  9  ❚  2  |  1  |  5  ❚  4  |  8  |  3  |
+        =======================================================
+        |  2  |  3  |  7  ❚  6  |  5  |  9  ❚  1  |  4  |  8  |
+        -------------------------------------------------------
+        |  9  |  6  |  1  ❚  8  |  3  |  4  ❚  5  |  2  |  7  |
+        -------------------------------------------------------
+        |  8  |  4  |  5  ❚  7  |  2  |  1  ❚  9  |  3  |  6  |
+        =======================================================
+        |  3  |  9  |  2  ❚  5  |  4  |  7  ❚  8  |  6  |  1  |
+        -------------------------------------------------------
+        |  7  |  1  |  8  ❚  9  |  6  |  2  ❚  3  |  5  |  4  |
+        -------------------------------------------------------
+        |  4  |  5  |  6  ❚  1  |  8  |  3  ❚  7  |  9  |  2  |
+        -------------------------------------------------------"
+      `)
     })
 
     test('should return the original grid if all cells are already filled', () => {
-      expect(stringifyGrid(fillCellsBruteForce(allCellsFilledGrid))).toMatchSnapshot()
+      expect(stringifyGrid(fillCellsBruteForce(allCellsFilledGrid))).toMatchInlineSnapshot(`
+        "-------------------------------------------------------
+        |  1  |  8  |  3  ❚  4  |  9  |  6  ❚  2  |  7  |  5  |
+        -------------------------------------------------------
+        |  5  |  2  |  4  ❚  3  |  7  |  8  ❚  6  |  1  |  9  |
+        -------------------------------------------------------
+        |  6  |  7  |  9  ❚  2  |  1  |  5  ❚  4  |  8  |  3  |
+        =======================================================
+        |  2  |  3  |  7  ❚  6  |  5  |  9  ❚  1  |  4  |  8  |
+        -------------------------------------------------------
+        |  9  |  6  |  1  ❚  8  |  3  |  4  ❚  5  |  2  |  7  |
+        -------------------------------------------------------
+        |  8  |  4  |  5  ❚  7  |  2  |  1  ❚  9  |  3  |  6  |
+        =======================================================
+        |  3  |  9  |  2  ❚  5  |  4  |  7  ❚  8  |  6  |  1  |
+        -------------------------------------------------------
+        |  7  |  1  |  8  ❚  9  |  6  |  2  ❚  3  |  5  |  4  |
+        -------------------------------------------------------
+        |  4  |  5  |  6  ❚  1  |  8  |  3  ❚  7  |  9  |  2  |
+        -------------------------------------------------------"
+      `)
     })
   })
 })

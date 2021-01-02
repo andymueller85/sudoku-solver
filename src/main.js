@@ -1,10 +1,11 @@
 import fs from 'fs'
 import lodash from 'lodash'
-import { getGridPossibleValues, rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver.js'
+import { rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver.js'
 import { processMatchingSets } from './matchingSetsSolver/matchingSetsSolver.js'
-import { applyDefinites, fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers.js'
+import { fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers.js'
 import {
   getFilledCellCount,
+  getGridPossibleValues,
   getNextEmptyCellCoordinates,
   getPossibleCellValues,
   gridHasAnyDeadEnds,
@@ -14,7 +15,7 @@ import {
   isFilled,
   printGrid,
   seedGrid,
-  stringifyGrid,
+  stringifyGrid
 } from './helpers/helpers.js'
 
 const { cloneDeep } = lodash
@@ -29,6 +30,20 @@ function log(grid, loopCount, msg) {
     console.log(`Pass ${loopCount} ${msg}`)
     console.log(`${stringifyGrid(grid)}\n\n`)
   }
+}
+
+export function applyDefinites(grid, possibleValsGrid) {
+  let myGrid = cloneDeep(grid)
+
+  possibleValsGrid.forEach((r, rIdx) =>
+    r.forEach((c, cIdx) => {
+      if (!isFilled(myGrid[rIdx][cIdx])) {
+        if (c.length === 1) myGrid[rIdx][cIdx] = c[0]
+      }
+    })
+  )
+
+  return myGrid
 }
 
 /************** orchestration ****************/

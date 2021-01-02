@@ -1,6 +1,9 @@
 import fs from 'fs'
+import lodash from 'lodash'
 import * as helpers from './helpers.js'
+import { fillCellsLogically } from '../main'
 
+const { cloneDeep } = lodash
 const { seedGrid, stringifyGrid } = helpers
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)
@@ -24,6 +27,7 @@ const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
 const gridWithImpossibleCells = grid.map((r, i) =>
   i === 4 ? r.map((c, idx) => `${idx === 0 ? '2' : c}`) : r
 )
+const solvedGrid = fillCellsLogically(grid).grid
 
 describe('General helper functions', () => {
   describe('isFilled', () => {
@@ -78,7 +82,27 @@ describe('General helper functions', () => {
     const { swapXY } = helpers
 
     test('return the grid with x and y axis swapped ', () => {
-      expect(stringifyGrid(swapXY(grid))).toMatchSnapshot()
+      expect(stringifyGrid(swapXY(grid))).toMatchInlineSnapshot(`
+        "-------------------------------------------------------
+        |  9  |  2  |     ❚     |     |     ❚     |     |  4  |
+        -------------------------------------------------------
+        |  1  |     |  8  ❚  9  |  4  |     ❚     |     |  7  |
+        -------------------------------------------------------
+        |     |     |  7  ❚  5  |  1  |     ❚  3  |  9  |     |
+        =======================================================
+        |  4  |     |     ❚     |  9  |     ❚  1  |     |     |
+        -------------------------------------------------------
+        |     |     |  3  ❚     |  8  |     ❚  9  |     |     |
+        -------------------------------------------------------
+        |     |     |  6  ❚     |  5  |     ❚     |     |  3  |
+        =======================================================
+        |     |  6  |  1  ❚     |  3  |  4  ❚  8  |     |     |
+        -------------------------------------------------------
+        |  3  |     |     ❚     |  6  |  9  ❚  2  |     |  1  |
+        -------------------------------------------------------
+        |  7  |     |     ❚     |     |     ❚     |  3  |  6  |
+        -------------------------------------------------------"
+      `)
     })
   })
 
@@ -143,6 +167,35 @@ describe('General helper functions', () => {
       [8, 6, undefined]
     ])('getNextCellCoordinates(grid, %d, %d) === %j', (rowNum, colNum, expected) => {
       expect(getNextEmptyCellCoordinates(grid, rowNum, colNum)).toEqual(expected)
+    })
+  })
+
+  describe('getGridPossibleValues', () => {
+    const { getGridPossibleValues } = helpers
+
+    test('should return a grid containing arrays for the possible values in each cell', () => {
+      // TODO: write a helper to pretty up possible vals grid snapshot. stringifyGrid will do for now
+      expect(stringifyGrid(getGridPossibleValues(grid))).toMatchInlineSnapshot(`
+        "-------------------------------------------------------
+        |  9  |  1  |  6  ❚  4  |  2,5  |  2❚8  |  2,5  |  3  |  7  |
+        -------------------------------------------------------------
+        |  2  |  3,5  |  4❚ |  5,7,8  |  1,5❚7  |  1,7,8,9  |  6  |  4,5,8  |  4,5,8,9  |
+        ---------------------------------------------------------------------------------
+        |  5  |  8  |  7  ❚  2,5  |  3  |  6❚ |  1  |  4,5  |  2,4,5,9  |
+        =================================================================
+        |  3,6,7,8  |  9  ❚  5  |  2,3,6,7  ❚  1,2,4,6,7  |  1,2,4,7  |  2,7  |  7,8  |  1,2,8  |
+        -----------------------------------------------------------------------------------------
+        |  7  |  4  |  1  ❚  9  |  8  |  5  ❚  3  |  6  |  2  |
+        -------------------------------------------------------
+        |  3,6,7,8  |  2,3❚6  |  2,6,8  |  2❚3,6,7  |  1,2,6,7  |  1,2,7  |  4  |  9  |  1,2,5,8  |
+        ===========================================================================================
+        |  5,6  |  5,6  | ❚3  |  1  |  9  | ❚4,7  |  8  |  2  |  4,5  |
+        ---------------------------------------------------------------
+        |  1,5,6,8  |  2,5❚6  |  9  |  2,5,6❚7,8  |  2,4,5,6,7  |  2,4,7,8  |  5,7  |  4,5,7  |  3  |
+        ---------------------------------------------------------------------------------------------
+        |  4  |  7  |  2,8❚ |  2,5,8  |  2,5❚ |  3  |  5,9  |  1  |  6  |
+        -----------------------------------------------------------------"
+      `)
     })
   })
 })
@@ -239,7 +292,14 @@ describe('Box helper functions', () => {
   })
 
   describe('getBoxIndexes', () => {
-    test.todo('getBoxIndexes')
+    const { getBoxIndexes } = helpers
+    test.each([
+      [0, [0, 1, 2]],
+      [3, [3, 4, 5]],
+      [6, [6, 7, 8]]
+    ])('top left row or column %d boxIndexes: %j', (input, expected) => {
+      expect(getBoxIndexes(input)).toEqual(expected)
+    })
   })
 
   describe('flattenBox', () => {
@@ -276,7 +336,27 @@ describe('Box helper functions', () => {
     const { flattenBoxes } = helpers
 
     test('should return the grid with the boxes represented as rows', () => {
-      expect(stringifyGrid(flattenBoxes(grid))).toMatchSnapshot()
+      expect(stringifyGrid(flattenBoxes(grid))).toMatchInlineSnapshot(`
+        "-------------------------------------------------------
+        |  9  |  1  |     ❚  2  |     |     ❚     |  8  |  7  |
+        -------------------------------------------------------
+        |  4  |     |     ❚     |     |     ❚     |  3  |  6  |
+        -------------------------------------------------------
+        |     |  3  |  7  ❚  6  |     |     ❚  1  |     |     |
+        =======================================================
+        |     |  9  |  5  ❚     |  4  |  1  ❚     |     |     |
+        -------------------------------------------------------
+        |     |     |     ❚  9  |  8  |  5  ❚     |     |     |
+        -------------------------------------------------------
+        |     |     |     ❚  3  |  6  |     ❚  4  |  9  |     |
+        =======================================================
+        |     |     |  3  ❚     |     |  9  ❚  4  |  7  |     |
+        -------------------------------------------------------
+        |  1  |  9  |     ❚     |     |     ❚     |     |  3  |
+        -------------------------------------------------------
+        |  8  |  2  |     ❚     |     |  3  ❚     |  1  |  6  |
+        -------------------------------------------------------"
+      `)
     })
   })
 
@@ -290,19 +370,51 @@ describe('Box helper functions', () => {
   })
 
   describe('rowNeighborsAreFilled', () => {
-    test.todo('rowNeighborsAreFilled')
+    const { rowNeighborsAreFilled } = helpers
+
+    test('should return true if for a given cell, all other cells in the same box and same row are filled', () => {
+      expect(rowNeighborsAreFilled(grid, 0, 2)).toBe(true)
+    })
+
+    test('should return false otherwise', () => {
+      expect(rowNeighborsAreFilled(grid, 0, 4)).toBe(false)
+    })
   })
 
   describe('columnNeighborsAreFilled', () => {
-    test.todo('columnNeighborsAreFilled')
+    const { columnNeighborsAreFilled } = helpers
+
+    test('should return true if for a given cell, all other cells in the same box and same column are filled', () => {
+      expect(columnNeighborsAreFilled(grid, 2, 0)).toBe(true)
+    })
+
+    test('should return false otherwise', () => {
+      expect(columnNeighborsAreFilled(grid, 0, 2)).toBe(false)
+    })
   })
 
   describe('rowNeighborsContainNumber', () => {
-    test.todo('rowNeighborsContainNumber')
+    const { rowNeighborsContainNumber } = helpers
+
+    test('should return true if for a given row, all other rows that intersect the same box contain the number', () => {
+      expect(rowNeighborsContainNumber(grid, 0, '6')).toBe(true)
+    })
+
+    test('should return false otherwise', () => {
+      expect(rowNeighborsContainNumber(grid, 0, '2')).toBe(false)
+    })
   })
 
   describe('columnNeighborsContainNumber', () => {
-    test.todo('columnNeighborsContainNumber')
+    const { columnNeighborsContainNumber } = helpers
+
+    test('should return true if for a given column, all other columns that intersect the same box contain the number', () => {
+      expect(columnNeighborsContainNumber(grid, 0, '1')).toBe(true)
+    })
+
+    test('should return false otherwise', () => {
+      expect(columnNeighborsContainNumber(grid, 0, '4')).toBe(false)
+    })
   })
 
   describe('getPossibleCellValues', () => {
@@ -337,7 +449,11 @@ describe('Filled nums functions', () => {
   })
 
   describe('getRowFilledNums', () => {
-    test.todo('getRowFilledNums')
+    const { getRowFilledNums } = helpers
+
+    test('should return an array containing all the filled numbers for a row', () => {
+      expect(getRowFilledNums(grid, 0)).toEqual('91437'.split(''))
+    })
   })
 
   describe('getColumnFilledNums', () => {
@@ -391,7 +507,11 @@ describe('Missing nums functions', () => {
   })
 
   describe('getRowMissingNums', () => {
-    test.todo('getRowMissingNums')
+    const { getRowMissingNums } = helpers
+
+    test('should return an array with all of the missing numbers for a row', () => {
+      expect(getRowMissingNums(grid, 0)).toEqual('2568'.split(''))
+    })
   })
 
   describe('getColumnMissingNums', () => {
@@ -491,7 +611,15 @@ describe('Missing cells functions', () => {
 
 describe('Validity functions', () => {
   describe('isValid', () => {
-    test.todo('isValid')
+    const { isValid } = helpers
+
+    test('should return true if the array does not contain duplicates', () => {
+      expect(isValid(grid[0])).toBe(true)
+    })
+
+    test('should return false if there are duplicates', () => {
+      expect(isValid('11234567'.split(''))).toBe(false)
+    })
   })
 
   describe('rowIsValid', () => {
@@ -603,7 +731,23 @@ describe('Validity functions', () => {
 
   describe('Completeness functions', () => {
     describe('isComplete', () => {
-      test.todo('isComplete')
+      const { isComplete } = helpers
+
+      test('should return true if a given array contains all the numbers without duplicates', () => {
+        expect(isComplete('123456789'.split(''))).toEqual(true)
+      })
+
+      test('should return false if there are duplicates', () => {
+        expect(isComplete('123456788'.split(''))).toEqual(false)
+      })
+
+      test('should return false if arr is incomplete', () => {
+        expect(isComplete('12345678.'.split(''))).toEqual(false)
+      })
+
+      test('should return false if the length is wrong', () => {
+        expect(isComplete('123'.split(''))).toEqual(false)
+      })
     })
 
     describe('rowIsComplete', () => {
@@ -655,7 +799,26 @@ describe('Validity functions', () => {
     })
 
     describe('gridIsComplete', () => {
-      test.todo('gridIsComplete')
+      const { gridIsComplete } = helpers
+
+      test('should return true if the grid is completely solved', () => {
+        expect(gridIsComplete(solvedGrid)).toEqual(true)
+      })
+
+      test('should return false if grid is valid but not complete', () => {
+        expect(gridIsComplete(grid)).toEqual(false)
+      })
+
+      test('should return false if grid is invalid', () => {
+        expect(gridIsComplete(duplicatesInFirstBoxGrid)).toEqual(false)
+      })
+
+      test('should return false if all cells are filled, but invalid', () => {
+        const invalidSolvedGrid = cloneDeep(solvedGrid)
+        invalidSolvedGrid[8][8] = 2
+
+        expect(gridIsComplete(invalidSolvedGrid)).toBe(false)
+      })
     })
   })
 })

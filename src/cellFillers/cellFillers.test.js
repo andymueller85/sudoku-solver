@@ -11,10 +11,6 @@ const firstBoxCompleteGrid = grid.map((r, rowI) =>
   r.map((c, colI) => (rowI < 3 && colI < 3 ? `${rowI * 3 + colI + 1}` : c))
 )
 
-describe('applyDefinites', () => {
-  test.todo('applyDefinites')
-})
-
 describe('Cell-filling functions - rows and columns', () => {
   describe('cellCanBeDeterminedForRow', () => {
     const { cellCanBeDeterminedForRow } = cellFillers

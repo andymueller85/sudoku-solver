@@ -116,6 +116,20 @@ export function seedGrid(input) {
     .map(r => [...r].map(c => c))
 }
 
+export function getGridPossibleValues(grid) {
+  return grid.map((r, rIdx) =>
+    r.map((c, cIdx) => {
+      if (isFilled(c)) return [c]
+
+      const rowMissingNums = getRowMissingNums(grid, rIdx)
+      const colMissingNums = getColumnMissingNums(grid, cIdx)
+      const boxMissingNums = getBoxMissingNums(grid, getBoxTopLeft(rIdx), getBoxTopLeft(cIdx))
+
+      return arrayIntersection(rowMissingNums, colMissingNums, boxMissingNums)
+    })
+  )
+}
+
 /************** Box helper fns ****************/
 export function getBoxTopLeft(rowOrCol) {
   return rowOrCol - (rowOrCol % 3)
@@ -137,7 +151,7 @@ export function getBoxTopLeftCoordinates(boxNum) {
   return [getBoxTopLeft(boxNum), getTopLeftColumnForBoxNum(boxNum)]
 }
 
-function getBoxIndexes(topLeftRowOrColumn) {
+export function getBoxIndexes(topLeftRowOrColumn) {
   return [topLeftRowOrColumn, topLeftRowOrColumn + 1, topLeftRowOrColumn + 2]
 }
 
@@ -172,26 +186,28 @@ export function unflattenBoxes(grid) {
   return unflattenedGrid
 }
 
-export function rowNeighborsAreFilled(grid, topLeftColumn, curRow, curCol) {
+export function rowNeighborsAreFilled(grid, curRow, curCol) {
+  const topLeftCol = getBoxTopLeft(curCol)
+
   return grid[curRow]
     .map((cell, index) => ({ cell, index }))
-    .slice(topLeftColumn, topLeftColumn + 3)
+    .slice(topLeftCol, topLeftCol + 3)
     .filter(({ index }) => index !== curCol)
     .every(({ cell }) => isFilled(cell))
 }
 
-export function columnNeighborsAreFilled(grid, topLeftRow, curRow, curCol) {
-  return rowNeighborsAreFilled(swapXY(grid), topLeftRow, curCol, curRow)
+export function columnNeighborsAreFilled(grid, curRow, curCol) {
+  return rowNeighborsAreFilled(swapXY(grid), curCol, curRow)
 }
 
-export function rowNeighborsContainNumber(grid, topLeftRow, curRow, num) {
-  return getBoxIndexes(topLeftRow)
+export function rowNeighborsContainNumber(grid, curRow, num) {
+  return getBoxIndexes(getBoxTopLeft(curRow))
     .filter(r => r !== curRow)
     .every(r => getFilledNums(grid[r]).includes(num))
 }
 
-export function columnNeighborsContainNumber(grid, topLeftCol, curCol, num) {
-  return getBoxIndexes(topLeftCol)
+export function columnNeighborsContainNumber(grid, curCol, num) {
+  return getBoxIndexes(getBoxTopLeft(curCol))
     .filter(c => c !== curCol)
     .every(c => getColumnFilledNums(grid, c).includes(num))
 }
@@ -298,7 +314,7 @@ export function gridIsValid(grid) {
 
 /************** completeness fns ****************/
 export function isComplete(arr) {
-  return isValid(arr) && arr.every(c => isFilled(c))
+  return isValid(arr) && arr.length === GRID_SIZE && arr.every(c => isFilled(c))
 }
 
 export function rowIsComplete(grid, rowNum) {

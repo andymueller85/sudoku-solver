@@ -1,16 +1,10 @@
 import lodash from 'lodash'
 import {
   allIndexes,
-  arrayIntersection,
   boxIndexes,
   flattenBox,
   getBoxCurColumn,
   getBoxCurRow,
-  getBoxMissingNums,
-  getBoxTopLeft,
-  getColumnMissingNums,
-  getRowMissingNums,
-  isFilled,
   possibleNums,
   swapXY
 } from '../helpers/helpers.js'
@@ -76,16 +70,3 @@ export function rowAndColBoxIntersections(possibleValsGrid) {
   return myGrid
 }
 
-export function getGridPossibleValues(grid) {
-  return grid.map((r, rIdx) =>
-    r.map((c, cIdx) => {
-      if (isFilled(c)) return [c]
-
-      const rowMissingNums = getRowMissingNums(grid, rIdx)
-      const colMissingNums = getColumnMissingNums(grid, cIdx)
-      const boxMissingNums = getBoxMissingNums(grid, getBoxTopLeft(rIdx), getBoxTopLeft(cIdx))
-
-      return arrayIntersection(rowMissingNums, colMissingNums, boxMissingNums)
-    })
-  )
-}
