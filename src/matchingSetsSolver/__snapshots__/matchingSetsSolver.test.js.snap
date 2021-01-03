@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Matching sets solver functions findMatches should find all sets of matches for an array of possible values 1`] = `
+Array [
+  Object {
+    "matches": Array [],
+    "possibles": Array [
+      "9",
+    ],
+  },
+  Object {
+    "matches": Array [],
+    "possibles": Array [
+      "1",
+    ],
+  },
+  Object {
+    "matches": Array [],
+    "possibles": Array [
+      "6",
+    ],
+  },
+  Object {
+    "matches": Array [],
+    "possibles": Array [
+      "4",
+    ],
+  },
+  Object {
+    "matches": Array [
+      6,
+    ],
+    "possibles": Array [
+      "2",
+      "5",
+    ],
+  },
+  Object {
+    "matches": Array [],
+    "possibles": Array [
+      "2",
+      "8",
+    ],
+  },
+  Object {
+    "matches": Array [
+      4,
+    ],
+    "possibles": Array [
+      "2",
+      "5",
+    ],
+  },
+  Object {
+    "matches": Array [],
+    "possibles": Array [
+      "3",
+    ],
+  },
+  Object {
+    "matches": Array [],
+    "possibles": Array [
+      "7",
+    ],
+  },
+]
+`;

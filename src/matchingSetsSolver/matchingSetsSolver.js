@@ -25,7 +25,7 @@ export function findMatches(arr) {
   }))
 }
 
-function whittlePossibles(matches, possiblesGrid) {
+export function whittlePossibles(matches, possiblesGrid) {
   let possibleValsGrid = cloneDeep(possiblesGrid)
 
   for (let n = 2; n < GRID_SIZE; n++) {

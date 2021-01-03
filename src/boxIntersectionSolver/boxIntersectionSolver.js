@@ -23,7 +23,7 @@ export function getOtherIndexes(i) {
   return allIndexes.filter(p => p < i * 3 || p > i * 3 + 2)
 }
 
-export function processBoxIntersections(possibleValsGrid, topLeftRowNum, topLeftColNum) {
+export function processBoxRowIntersections(possibleValsGrid, topLeftRowNum, topLeftColNum) {
   let myGrid = cloneDeep(possibleValsGrid)
   const flatBox = flattenBox(myGrid, topLeftRowNum, topLeftColNum)
 
@@ -49,12 +49,12 @@ export function processBoxIntersections(possibleValsGrid, topLeftRowNum, topLeft
   return myGrid
 }
 
-export function allBoxIntersections(possibleValsGrid) {
+export function allBoxRowIntersections(possibleValsGrid) {
   let myGrid = cloneDeep(possibleValsGrid)
 
   boxIndexes.forEach(r => {
     boxIndexes.forEach(c => {
-      myGrid = processBoxIntersections(myGrid, r, c)
+      myGrid = processBoxRowIntersections(myGrid, r, c)
     })
   })
 
@@ -64,8 +64,8 @@ export function allBoxIntersections(possibleValsGrid) {
 export function rowAndColBoxIntersections(possibleValsGrid) {
   let myGrid = cloneDeep(possibleValsGrid)
 
-  myGrid = allBoxIntersections(myGrid)
-  myGrid = swapXY(allBoxIntersections(swapXY(myGrid)))
+  myGrid = allBoxRowIntersections(myGrid)
+  myGrid = swapXY(allBoxRowIntersections(swapXY(myGrid)))
 
   return myGrid
 }
