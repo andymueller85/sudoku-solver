@@ -75,7 +75,7 @@ export function getNextEmptyCellCoordinates(grid, rowNum, colNum) {
   return getNextEmptyCellCoordinates(grid, newRowNum, newColNum)
 }
 
-export function stringifyGrid(grid) {
+export function stringifyGrid(grid, isPossibleVals = false) {
   const vertSeparator = '|'
   const innerSeparator = `  ${vertSeparator}  `
   const rowBegin = `${vertSeparator}  `
@@ -83,7 +83,7 @@ export function stringifyGrid(grid) {
   const pad = rowBegin.length + rowEnd.length
   const horSeparator = '-'
   const boxSeparatorVert = String.fromCharCode(parseInt('275A', 16))
-  const boxSeparatorHor = '='
+  const boxSeparatorHor = isPossibleVals ? horSeparator : '='
 
   function replaceCharAt(str, i, char) {
     return str.substring(0, i) + char + str.substring(i + 1)
@@ -94,8 +94,10 @@ export function stringifyGrid(grid) {
   for (let row = 0; row < GRID_SIZE; row++) {
     let logStr = grid[row].map(c => (isFilled(c) ? c : ' ')).join(innerSeparator)
 
-    logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
-    logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
+    if (!isPossibleVals)  {
+          logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
+          logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
+    }
 
     strGrid += `\n${rowBegin}${logStr}${rowEnd}\n`
     strGrid += ([2, 5].includes(row) ? boxSeparatorHor : horSeparator).repeat(logStr.length + pad)
