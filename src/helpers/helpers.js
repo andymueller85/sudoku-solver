@@ -106,17 +106,6 @@ export function stringifyGrid(grid, isPossibleVals = false) {
   return strGrid
 }
 
-// export function stringifyPossibleValsGrid(possibleValsGrid) {
-//   let strGrid = ''
-//   possibleValsGrid.forEach(row => {
-//     strGrid += row.toString() + '\n'
-//     // row.forEach(arr => (strGrid += JSON.stringify(arr)))
-//     // strGrid += '\n'
-//   })
-
-//   return strGrid
-// }
-
 /* istanbul ignore next */
 export function printGrid(grid) {
   console.log(stringifyGrid(grid))
