@@ -94,9 +94,9 @@ export function stringifyGrid(grid, isPossibleVals = false) {
   for (let row = 0; row < GRID_SIZE; row++) {
     let logStr = grid[row].map(c => (isFilled(c) ? c : ' ')).join(innerSeparator)
 
-    if (!isPossibleVals)  {
-          logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
-          logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
+    if (!isPossibleVals) {
+      logStr = replaceCharAt(logStr, 15, boxSeparatorVert)
+      logStr = replaceCharAt(logStr, 33, boxSeparatorVert)
     }
 
     strGrid += `\n${rowBegin}${logStr}${rowEnd}\n`
