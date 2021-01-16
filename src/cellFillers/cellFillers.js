@@ -20,7 +20,6 @@ import {
 const { cloneDeep } = lodash
 
 
-/************** cell-filling fns - rows & cols ****************/
 export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
   const rowMissingNums = getMissingNums(grid[rowNum])
   const columnMissingNums = getColumnMissingNums(grid, colNum)
@@ -52,12 +51,11 @@ export function fillRows(grid) {
   return myGrid
 }
 
-// aka Phil Collims
+/* aka Phil Collims */
 export function fillColumns(grid) {
   return swapXY(fillRows(swapXY(grid)))
 }
 
-/************** cell-filling fns - boxes ****************/
 export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, num) {
   const curRow = getBoxCurRow(topLeftRow, cell)
   const curCol = getBoxCurColumn(topLeftCol, cell)

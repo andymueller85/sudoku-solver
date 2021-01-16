@@ -4,7 +4,7 @@ export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
 export const boxIndexes = [0, 3, 6]
 export const miniGridIndexes = [0, 1, 2]
 
-/************** General helper fns ****************/
+//************** General helper fns ****************/
 export function isFilled(cell) {
   return cell !== '.'
 }
@@ -106,16 +106,6 @@ export function stringifyGrid(grid, isPossibleVals = false) {
   return strGrid
 }
 
-// export function stringifyPossibleValsGrid(possibleValsGrid) {
-//   let strGrid = ''
-//   possibleValsGrid.forEach(row => {
-//     strGrid += row.toString() + '\n'
-//     // row.forEach(arr => (strGrid += JSON.stringify(arr)))
-//     // strGrid += '\n'
-//   })
-
-//   return strGrid
-// }
 
 /* istanbul ignore next */
 export function printGrid(grid) {
@@ -143,7 +133,7 @@ export function getGridPossibleValues(grid) {
   )
 }
 
-/************** Box helper fns ****************/
+//************** Box helper fns ****************/
 export function getBoxTopLeft(rowOrCol) {
   return rowOrCol - (rowOrCol % 3)
 }
@@ -233,7 +223,7 @@ export function getPossibleCellValues(grid, rowNum, colNum) {
   return arrayIntersection(rowMissingNums, colMissingNums, boxMissingNums)
 }
 
-/************** Filled Nums fns ****************/
+//************** Filled Nums fns ****************/
 export function getFilledNums(arr) {
   return arr.filter(c => isFilled(c))
 }
@@ -250,7 +240,7 @@ export function getBoxFilledNums(grid, topLeftRowNum, topLeftColNum) {
   return getFilledNums(flattenBox(grid, topLeftRowNum, topLeftColNum))
 }
 
-/************** Missing Nums fns ****************/
+//************** Missing Nums fns ****************/
 export function getMissingNums(arr) {
   return possibleNums.filter(n => !getFilledNums(arr).includes(n))
 }
@@ -267,7 +257,7 @@ export function getBoxMissingNums(grid, topLeftRowNum, topLeftColNum) {
   return getMissingNums(flattenBox(grid, topLeftRowNum, topLeftColNum))
 }
 
-/************** Missing Cells fns ****************/
+//************** Missing Cells fns ****************/
 export function getMissingCells(arr) {
   return arr
     .map((cell, index) => ({ cell, index }))
@@ -287,7 +277,7 @@ export function getBoxMissingCells(grid, topLeftRowNum, topLeftColNum) {
   return getMissingCells(flattenBox(grid, topLeftRowNum, topLeftColNum))
 }
 
-/************** validity fns ****************/
+//************** validity fns ****************/
 export function isValid(arr) {
   const filledNums = getFilledNums(arr)
 
@@ -325,7 +315,7 @@ export function gridIsValid(grid) {
   return everyRowIsValid(grid) && everyColumnIsValid(grid) && everyBoxIsValid(grid)
 }
 
-/************** completeness fns ****************/
+//************** completeness fns ****************/
 export function isComplete(arr) {
   return isValid(arr) && arr.length === GRID_SIZE && arr.every(c => isFilled(c))
 }

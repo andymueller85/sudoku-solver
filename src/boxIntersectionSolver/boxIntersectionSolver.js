@@ -12,7 +12,6 @@ import { miniGridIndexes } from '../helpers/helpers.js'
 
 const { cloneDeep } = lodash
 
-/************** box intersections solver fns ****************/
 export function getImpossibilities(arr) {
   return possibleNums.filter(
     p => ![...new Set(arr.reduce((acc, cur) => acc.concat(cur)))].includes(p)

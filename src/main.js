@@ -46,7 +46,7 @@ export function applyDefinites(grid, possibleValsGrid) {
   return myGrid
 }
 
-/************** orchestration ****************/
+//************** orchestration ****************/
 export function fillCellsLogically(grid) {
   let updatedGrid = cloneDeep(grid)
   let prevFilledCellCount = 0
