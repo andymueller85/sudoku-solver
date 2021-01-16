@@ -106,7 +106,6 @@ export function stringifyGrid(grid, isPossibleVals = false) {
   return strGrid
 }
 
-
 /* istanbul ignore next */
 export function printGrid(grid) {
   console.log(stringifyGrid(grid))
