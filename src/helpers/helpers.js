@@ -10,7 +10,7 @@ export function isFilled(cell) {
 }
 
 export function getFilledCellCount(grid) {
-  return grid.map(r => r.filter(c => isFilled(c))).flat().length
+  return grid.map(r => r.filter(isFilled)).flat().length
 }
 
 export function arrayIntersection(...arrays) {
@@ -115,7 +115,7 @@ export function seedGrid(input) {
   return input
     .split(/\r?\n/)
     .filter(r => r)
-    .map(r => [...r].map(c => c))
+    .map(r => [...r])
 }
 
 export function getGridPossibleValues(grid) {
@@ -224,7 +224,7 @@ export function getPossibleCellValues(grid, rowNum, colNum) {
 
 //************** Filled Nums fns ****************/
 export function getFilledNums(arr) {
-  return arr.filter(c => isFilled(c))
+  return arr.filter(isFilled)
 }
 
 export function getRowFilledNums(grid, rowNum) {
@@ -316,7 +316,7 @@ export function gridIsValid(grid) {
 
 //************** completeness fns ****************/
 export function isComplete(arr) {
-  return isValid(arr) && arr.length === GRID_SIZE && arr.every(c => isFilled(c))
+  return isValid(arr) && arr.length === GRID_SIZE && arr.every(isFilled)
 }
 
 export function rowIsComplete(grid, rowNum) {
@@ -332,5 +332,5 @@ export function boxIsComplete(grid, topLeftRowNum, topLeftColNum) {
 }
 
 export function gridIsComplete(grid) {
-  return gridIsValid(grid) && grid.every(r => r.every(c => isFilled(c)))
+  return gridIsValid(grid) && grid.every(r => r.every(isFilled))
 }
