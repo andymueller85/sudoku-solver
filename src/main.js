@@ -100,8 +100,7 @@ export function fillCellsBruteForce(grid) {
     const curGrid = cloneDeep(myGrid)
 
     for (let rowNum = curRow; rowNum < GRID_SIZE; rowNum++) {
-      let colNum = rowNum === curRow ? curCol : 0
-      for (; colNum < GRID_SIZE; colNum++) {
+      for (let colNum = rowNum === curRow ? curCol : 0; colNum < GRID_SIZE; colNum++) {
         if (!isFilled(curGrid[rowNum][colNum])) {
           if (gridHasAnyDeadEnds(curGrid)) {
             return

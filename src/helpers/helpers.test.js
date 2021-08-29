@@ -447,14 +447,6 @@ describe('Filled nums functions', () => {
     })
   })
 
-  describe('getRowFilledNums', () => {
-    const { getRowFilledNums } = helpers
-
-    test('should return an array containing all the filled numbers for a row', () => {
-      expect(getRowFilledNums(grid, 0)).toEqual('91437'.split(''))
-    })
-  })
-
   describe('getColumnFilledNums', () => {
     const { getColumnFilledNums } = helpers
 
@@ -468,22 +460,6 @@ describe('Filled nums functions', () => {
 
     test('should work for full column', () => {
       expect(getColumnFilledNums(firstColumnCompleteGrid, 0)).toEqual(helpers.possibleNums)
-    })
-
-    describe('getBoxFilledNums', () => {
-      const { getBoxFilledNums } = helpers
-
-      test('should return all the known numbers for the box', () => {
-        expect(getBoxFilledNums(grid, 0, 0)).toEqual('91287'.split(''))
-      })
-
-      test('should work for an empty box', () => {
-        expect(getBoxFilledNums(firstBoxEmptyGrid, 0, 0)).toEqual([])
-      })
-
-      test('should work for a box with all numbers known', () => {
-        expect(getBoxFilledNums(firstBoxCompleteGrid, 0, 0)).toEqual(helpers.possibleNums)
-      })
     })
   })
 })
@@ -621,18 +597,6 @@ describe('Validity functions', () => {
     })
   })
 
-  describe('rowIsValid', () => {
-    const { rowIsValid } = helpers
-
-    test('should return true if there are no duplicate values in a row', () => {
-      expect(rowIsValid(grid, 0)).toBe(true)
-    })
-
-    test('should return false if there are duplicate values in a row', () => {
-      expect(rowIsValid(duplicatesInFirstRowGrid, 0)).toBe(false)
-    })
-  })
-
   describe('everyRowIsValid', () => {
     const { everyRowIsValid } = helpers
 
@@ -729,74 +693,6 @@ describe('Validity functions', () => {
   })
 
   describe('Completeness functions', () => {
-    describe('isComplete', () => {
-      const { isComplete } = helpers
-
-      test('should return true if a given array contains all the numbers without duplicates', () => {
-        expect(isComplete('123456789'.split(''))).toEqual(true)
-      })
-
-      test('should return false if there are duplicates', () => {
-        expect(isComplete('123456788'.split(''))).toEqual(false)
-      })
-
-      test('should return false if arr is incomplete', () => {
-        expect(isComplete('12345678.'.split(''))).toEqual(false)
-      })
-
-      test('should return false if the length is wrong', () => {
-        expect(isComplete('123'.split(''))).toEqual(false)
-      })
-    })
-
-    describe('rowIsComplete', () => {
-      const { rowIsComplete } = helpers
-
-      test('should return false if not every cell in a row is filled', () => {
-        expect(rowIsComplete(grid, 0)).toBe(false)
-      })
-
-      test('should return true if every cell in a row is filled', () => {
-        expect(rowIsComplete(firstRowCompleteGrid, 0)).toBe(true)
-      })
-
-      test('should work for an empty row', () => {
-        expect(rowIsComplete(firstRowEmptyGrid, 0)).toBe(false)
-      })
-    })
-
-    describe('columnIsComplete', () => {
-      const { columnIsComplete } = helpers
-
-      test('should return false if not every cell in a column is filled', () => {
-        expect(columnIsComplete(grid, 0)).toBe(false)
-      })
-
-      test('should return true if every cell in a column is filled', () => {
-        expect(columnIsComplete(firstColumnCompleteGrid, 0)).toBe(true)
-      })
-
-      test('should work when no cells are filled', () => {
-        expect(columnIsComplete(firstColumnEmptyGrid, 0)).toBe(false)
-      })
-    })
-
-    describe('boxIsComplete', () => {
-      const { boxIsComplete } = helpers
-
-      test('should return false if any box elements are missing', () => {
-        expect(boxIsComplete(grid, 0, 0)).toBe(false)
-      })
-
-      test('should work for box with all elements missing', () => {
-        expect(boxIsComplete(firstBoxEmptyGrid, 0, 0)).toBe(false)
-      })
-
-      test('should return true if all box elements are filled', () => {
-        expect(boxIsComplete(firstBoxCompleteGrid, 0, 0)).toBe(true)
-      })
-    })
-
     describe('gridIsComplete', () => {
       const { gridIsComplete } = helpers
 

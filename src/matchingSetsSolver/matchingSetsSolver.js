@@ -16,10 +16,8 @@ export function findMatches(arr) {
     matches: cells
       .map((vals, idx) => ({ vals, idx }))
       .filter(
-        cell =>
-          arrIdx !== cell.idx &&
-          cell.vals.length === c.length &&
-          cell.vals.every((v, i) => v === c[i])
+        ({ vals, idx }) =>
+          arrIdx !== idx && vals.length === c.length && vals.every((v, i) => v === c[i])
       )
       .map(({ idx }) => idx)
   }))

@@ -227,16 +227,8 @@ export function getFilledNums(arr) {
   return arr.filter(isFilled)
 }
 
-export function getRowFilledNums(grid, rowNum) {
-  return getFilledNums(grid[rowNum])
-}
-
 export function getColumnFilledNums(grid, colNum) {
   return getFilledNums(getColumnArray(grid, colNum))
-}
-
-export function getBoxFilledNums(grid, topLeftRowNum, topLeftColNum) {
-  return getFilledNums(flattenBox(grid, topLeftRowNum, topLeftColNum))
 }
 
 //************** Missing Nums fns ****************/
@@ -286,12 +278,8 @@ export function isValid(arr) {
   )
 }
 
-export function rowIsValid(grid, rowNum) {
-  return isValid(grid[rowNum])
-}
-
 export function everyRowIsValid(grid) {
-  return grid.every((_, rowNum) => rowIsValid(grid, rowNum))
+  return grid.every((_, rowNum) => isValid(grid[rowNum]))
 }
 
 export function columnIsValid(grid, colNum) {
@@ -315,22 +303,6 @@ export function gridIsValid(grid) {
 }
 
 //************** completeness fns ****************/
-export function isComplete(arr) {
-  return isValid(arr) && arr.length === GRID_SIZE && arr.every(isFilled)
-}
-
-export function rowIsComplete(grid, rowNum) {
-  return isComplete(grid[rowNum])
-}
-
-export function columnIsComplete(grid, colNum) {
-  return isComplete(getColumnArray(grid, colNum))
-}
-
-export function boxIsComplete(grid, topLeftRowNum, topLeftColNum) {
-  return isComplete(flattenBox(grid, topLeftRowNum, topLeftColNum))
-}
-
 export function gridIsComplete(grid) {
   return gridIsValid(grid) && grid.every(r => r.every(isFilled))
 }
