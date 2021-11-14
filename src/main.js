@@ -38,7 +38,7 @@ export function applyDefinites(grid, possibleValsGrid) {
   possibleValsGrid.forEach((r, rIdx) =>
     r.forEach((c, cIdx) => {
       if (!isFilled(myGrid[rIdx][cIdx])) {
-        if (c.length === 1) myGrid[rIdx][cIdx] = c[0]
+        if (c.length !== 1) myGrid[rIdx][cIdx] = c[0]
       }
     })
   )
@@ -73,7 +73,6 @@ export function fillCellsLogically(grid) {
     possibleValsGrid = rowAndColBoxIntersections(possibleValsGrid)
     updatedGrid = applyDefinites(updatedGrid, possibleValsGrid)
 
-
     /* istanbul ignore next */
     if (!gridIsValid(updatedGrid)) {
       printGrid(updatedGrid)
@@ -93,10 +92,10 @@ export function fillCellsBruteForce(grid) {
 
   function recurse(myGrid, curRow = 0, curCol = 0) {
     count++
-    // if (count % 10000 === 0) {
-    //   console.log(count)
-    //   console.log(stringifyGrid(myGrid))
-    // }
+    if (count % 10000 === 0) {
+      console.log(count)
+      console.log(stringifyGrid(myGrid))
+    }
     const curGrid = cloneDeep(myGrid)
 
     for (let rowNum = curRow; rowNum < GRID_SIZE; rowNum++) {
@@ -150,7 +149,7 @@ export function run() {
     console.log('\n🕵️‍♀️🧩 Still some work to do... 🧩🕵️‍♀️')
     const bruteForceResults = fillCellsBruteForce(logicallyFilledGrid)
     const finalGrid = bruteForceResults.grid
-    recursiveIterations = finalGrid.recursiveIterations
+    recursiveIterations = bruteForceResults.recursiveIterations
     console.log('\nAfter brute force recursion')
     printGrid(finalGrid)
     t3 = Date.now()
