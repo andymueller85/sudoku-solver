@@ -38,7 +38,7 @@ export function applyDefinites(grid, possibleValsGrid) {
   possibleValsGrid.forEach((r, rIdx) =>
     r.forEach((c, cIdx) => {
       if (!isFilled(myGrid[rIdx][cIdx])) {
-        if (c.length !== 1) myGrid[rIdx][cIdx] = c[0]
+        if (c.length === 1) myGrid[rIdx][cIdx] = c[0]
       }
     })
   )
