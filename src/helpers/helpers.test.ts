@@ -1,6 +1,6 @@
 import fs from 'fs'
 import lodash from 'lodash'
-import * as helpers from './helpers.js'
+import * as helpers from './helpers'
 import { fillCellsLogically } from '../main'
 
 const { cloneDeep } = lodash
@@ -110,19 +110,19 @@ describe('General helper functions', () => {
     const { allArraysAreEqual } = helpers
 
     test('should return true if all arrays passed are the same', () => {
-      expect(allArraysAreEqual('12345'.split(), '12345'.split())).toBe(true)
+      expect(allArraysAreEqual('12345'.split(''), '12345'.split(''))).toBe(true)
     })
 
     test('should work for any number of arrays', () => {
-      expect(allArraysAreEqual('12345'.split(), '12345'.split(), '12345'.split())).toBe(true)
+      expect(allArraysAreEqual('12345'.split(''), '12345'.split(''), '12345'.split(''))).toBe(true)
     })
 
     test('should return true if only one array is passed', () => {
-      expect(allArraysAreEqual('12345'.split())).toBe(true)
+      expect(allArraysAreEqual('12345'.split(''))).toBe(true)
     })
 
     test('should return false if arrays are different', () => {
-      expect(allArraysAreEqual('12345'.split(), '1234'.split())).toBe(false)
+      expect(allArraysAreEqual('12345'.split(''), '1234'.split(''))).toBe(false)
     })
   })
 
@@ -323,10 +323,10 @@ describe('Box helper functions', () => {
     const { unflattenBox } = helpers
 
     test('should return the array as a 3x3 box', () => {
-      expect(unflattenBox('123456789'.slice(''))).toEqual([
-        '123'.slice(''),
-        '456'.slice(''),
-        '789'.slice('')
+      expect(unflattenBox('123456789'.split(''))).toEqual([
+        '123'.split(''),
+        '456'.split(''),
+        '789'.split('')
       ])
     })
   })
@@ -710,7 +710,7 @@ describe('Validity functions', () => {
 
       test('should return false if all cells are filled, but invalid', () => {
         const invalidSolvedGrid = cloneDeep(solvedGrid)
-        invalidSolvedGrid[8][8] = 2
+        invalidSolvedGrid[8][8] = '2'
 
         expect(gridIsComplete(invalidSolvedGrid)).toBe(false)
       })

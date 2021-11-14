@@ -1,7 +1,7 @@
 import fs from 'fs'
 import lodash from 'lodash'
-import { seedGrid, stringifyGrid } from '../helpers/helpers.js'
-import * as cellFillers from './cellFillers.js'
+import { seedGrid, stringifyGrid } from '../helpers/helpers'
+import * as cellFillers from './cellFillers'
 
 const { cloneDeep } = lodash
 const fileInput = fs.readFileSync('./input.txt', 'utf8')

@@ -2,8 +2,8 @@
  * For a detailed explanation regarding each configuration property, visit:
  * https://jestjs.io/docs/en/configuration.html
  */
-
-export default {
+/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+module.exports = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -93,7 +93,7 @@ export default {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  // preset: undefined,
+  preset: 'ts-jest',
 
   // Run tests from one or more projects
   // projects: undefined,

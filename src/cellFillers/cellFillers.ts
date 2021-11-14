@@ -15,12 +15,12 @@ import {
   rowNeighborsAreFilled,
   rowNeighborsContainNumber,
   swapXY
-} from '../helpers/helpers.js'
+} from '../helpers/helpers'
+import { Grid } from '../types'
 
 const { cloneDeep } = lodash
 
-
-export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
+export function cellCanBeDeterminedForRow(grid: Grid, rowNum: number, colNum: number, num: string) {
   const rowMissingNums = getMissingNums(grid[rowNum])
   const columnMissingNums = getColumnMissingNums(grid, colNum)
 
@@ -35,7 +35,7 @@ export function cellCanBeDeterminedForRow(grid, rowNum, colNum, num) {
   )
 }
 
-export function fillRows(grid) {
+export function fillRows(grid: Grid) {
   let myGrid = cloneDeep(grid)
 
   myGrid.forEach((_, rowNum) => {
@@ -52,11 +52,17 @@ export function fillRows(grid) {
 }
 
 /* aka Phil Collims */
-export function fillColumns(grid) {
+export function fillColumns(grid: Grid) {
   return swapXY(fillRows(swapXY(grid)))
 }
 
-export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, num) {
+export function cellCanBeDeterminedForBox(
+  grid: Grid,
+  cell: number,
+  topLeftRow: number,
+  topLeftCol: number,
+  num: string
+) {
   const curRow = getBoxCurRow(topLeftRow, cell)
   const curCol = getBoxCurColumn(topLeftCol, cell)
   const rNeighborsFilled = rowNeighborsAreFilled(grid, curRow, curCol)
@@ -81,7 +87,7 @@ export function cellCanBeDeterminedForBox(grid, cell, topLeftRow, topLeftCol, nu
   )
 }
 
-export function fillBoxes(grid) {
+export function fillBoxes(grid: Grid) {
   // TODO: it would probably be cleaner to flatten the boxes
   let myGrid = cloneDeep(grid)
 

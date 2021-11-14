@@ -1,6 +1,6 @@
 import fs from 'fs'
-import { getGridPossibleValues, seedGrid, stringifyGrid } from '../helpers/helpers.js'
-import * as matchingSetsSolver from './matchingSetsSolver.js'
+import { getGridPossibleValues, seedGrid, stringifyGrid } from '../helpers/helpers'
+import * as matchingSetsSolver from './matchingSetsSolver'
 
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)

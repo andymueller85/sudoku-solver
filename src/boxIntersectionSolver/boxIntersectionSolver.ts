@@ -7,22 +7,27 @@ import {
   getBoxCurRow,
   possibleNums,
   swapXY
-} from '../helpers/helpers.js'
-import { miniGridIndexes } from '../helpers/helpers.js'
+} from '../helpers/helpers'
+import { miniGridIndexes } from '../helpers/helpers'
+import { Grid, PossiblesGrid, PossiblesRow, Row } from '../types'
 
 const { cloneDeep } = lodash
 
-export function getImpossibilities(arr) {
+export function getImpossibilities(arr: PossiblesRow) {
   return possibleNums.filter(
     p => ![...new Set(arr.reduce((acc, cur) => acc.concat(cur)))].includes(p)
   )
 }
 
-export function getOtherIndexes(i) {
+export function getOtherIndexes(i: number) {
   return allIndexes.filter(p => p < i * 3 || p > i * 3 + 2)
 }
 
-export function processBoxRowIntersections(possibleValsGrid, topLeftRowNum, topLeftColNum) {
+export function processBoxRowIntersections(
+  possibleValsGrid: PossiblesGrid,
+  topLeftRowNum: number,
+  topLeftColNum: number
+) {
   let myGrid = cloneDeep(possibleValsGrid)
   const flatBox = flattenBox(myGrid, topLeftRowNum, topLeftColNum)
 
@@ -48,7 +53,7 @@ export function processBoxRowIntersections(possibleValsGrid, topLeftRowNum, topL
   return myGrid
 }
 
-export function allBoxRowIntersections(possibleValsGrid) {
+export function allBoxRowIntersections(possibleValsGrid: PossiblesGrid) {
   let myGrid = cloneDeep(possibleValsGrid)
 
   boxIndexes.forEach(r => {
@@ -60,7 +65,7 @@ export function allBoxRowIntersections(possibleValsGrid) {
   return myGrid
 }
 
-export function rowAndColBoxIntersections(possibleValsGrid) {
+export function rowAndColBoxIntersections(possibleValsGrid: PossiblesGrid) {
   let myGrid = cloneDeep(possibleValsGrid)
 
   myGrid = allBoxRowIntersections(myGrid)
@@ -68,4 +73,3 @@ export function rowAndColBoxIntersections(possibleValsGrid) {
 
   return myGrid
 }
-

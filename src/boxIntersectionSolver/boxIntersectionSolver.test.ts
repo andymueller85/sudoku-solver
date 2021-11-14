@@ -1,6 +1,6 @@
 import fs from 'fs'
-import { getGridPossibleValues, possibleNums, seedGrid, stringifyGrid } from '../helpers/helpers.js'
-import * as boxIntersectionSolver from './boxIntersectionSolver.js'
+import { getGridPossibleValues, possibleNums, seedGrid, stringifyGrid } from '../helpers/helpers'
+import * as boxIntersectionSolver from './boxIntersectionSolver'
 
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)

@@ -2,12 +2,14 @@
   "name": "sudoku-solver",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
+  "main": "index.ts",
+  "module": "dist",
   "scripts": {
+    "build": "tsc",
+    "clean": "rd /s /q dist",
     "install:frozen": "yarn --frozen-lockfile",
-    "start": "node ./src/index.js -r -esm",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "start": "ts-node ./src/index.ts -r -esm",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=src",
     "test:watch": "yarn test --watch",
     "test:coverage": "yarn test --coverage",
     "test:coverage:watch": "yarn test --coverage --watch"
@@ -23,12 +25,17 @@
   },
   "homepage": "https://github.com/andymueller85/sudoku-solver#readme",
   "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/jest": "^27.0.2",
+    "@types/lodash": "^4.14.176",
     "cross-env": "^7.0.3",
-    "jest": "^26.6.3",
-    "prettier": "^2.2.1"
+    "jest": "^27.0.7",
+    "prettier": "^2.2.1",
+    "ts-jest": "^27.0.7"
   },
   "dependencies": {
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "typescript": "^4.4.4"
   },
   "engines": {
     "node": ">=12.0.0"

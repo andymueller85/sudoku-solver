@@ -1,8 +1,8 @@
 import fs from 'fs'
 import { expect } from '@jest/globals'
-import * as main from './main.js'
-import { getGridPossibleValues, seedGrid, stringifyGrid } from './helpers/helpers.js'
-import { rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver.js'
+import * as main from './main'
+import { getGridPossibleValues, seedGrid, stringifyGrid } from './helpers/helpers'
+import { rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver'
 import { applyDefinites } from './main'
 
 const fileInputHard = fs.readFileSync('./input_hard.txt', 'utf8')
@@ -102,7 +102,7 @@ describe('Orchestration functions', () => {
     const allCellsFilledGrid = fillCellsBruteForce(partiallySolvedGrid).grid
 
     test('should be solved and match snapshot after processing', () => {
-      expect(stringifyGrid(allCellsFilledGrid)).toMatchInlineSnapshot(`
+      expect(stringifyGrid(allCellsFilledGrid!)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  ❚  4  |  5  |  8  ❚  2  |  3  |  7  |
         -------------------------------------------------------
@@ -126,7 +126,7 @@ describe('Orchestration functions', () => {
     })
 
     test('should return the original grid if all cells are already filled', () => {
-      expect(stringifyGrid(fillCellsBruteForce(allCellsFilledGrid))).toMatchInlineSnapshot(`
+      expect(stringifyGrid(fillCellsBruteForce(allCellsFilledGrid!).grid!)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  ❚  4  |  5  |  8  ❚  2  |  3  |  7  |
         -------------------------------------------------------

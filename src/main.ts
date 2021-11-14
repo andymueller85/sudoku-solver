@@ -1,8 +1,8 @@
 import fs from 'fs'
 import lodash from 'lodash'
-import { rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver.js'
-import { processMatchingSets } from './matchingSetsSolver/matchingSetsSolver.js'
-import { fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers.js'
+import { rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver'
+import { processMatchingSets } from './matchingSetsSolver/matchingSetsSolver'
+import { fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers'
 import {
   getFilledCellCount,
   getGridPossibleValues,
@@ -16,23 +16,24 @@ import {
   printGrid,
   seedGrid,
   stringifyGrid
-} from './helpers/helpers.js'
+} from './helpers/helpers'
+import { Grid, GridWithMeta, PossiblesGrid } from './types'
 
 const { cloneDeep } = lodash
 const DEBUG = false
 
-const inputName = 'input_evil.txt'
+const inputName = 'input_3.txt'
 const fileInput = fs.readFileSync(`./${inputName}`, 'utf8')
 
 /* istanbul ignore next */
-function log(grid, loopCount, msg) {
+function log(grid: Grid, loopCount: number, msg: string) {
   if (DEBUG) {
     console.log(`Pass ${loopCount} ${msg}`)
     console.log(`${stringifyGrid(grid)}\n\n`)
   }
 }
 
-export function applyDefinites(grid, possibleValsGrid) {
+export function applyDefinites(grid: Grid, possibleValsGrid: PossiblesGrid) {
   let myGrid = cloneDeep(grid)
 
   possibleValsGrid.forEach((r, rIdx) =>
@@ -47,7 +48,7 @@ export function applyDefinites(grid, possibleValsGrid) {
 }
 
 //************** orchestration ****************/
-export function fillCellsLogically(grid) {
+export function fillCellsLogically(grid: Grid) {
   let updatedGrid = cloneDeep(grid)
   let prevFilledCellCount = 0
   let filledCellCount = getFilledCellCount(updatedGrid)
@@ -85,12 +86,12 @@ export function fillCellsLogically(grid) {
   return { grid: updatedGrid, iterations: loopCount }
 }
 
-export function fillCellsBruteForce(grid) {
-  if (gridIsComplete(grid)) return grid
-  let finalGrid = undefined
+export function fillCellsBruteForce(grid: Grid): GridWithMeta {
+  if (gridIsComplete(grid)) return { grid, recursiveIterations: 0 }
+  let finalGrid: Grid | undefined = undefined
   let count = 0
 
-  function recurse(myGrid, curRow = 0, curCol = 0) {
+  function recurse(myGrid: Grid, curRow = 0, curCol = 0) {
     count++
     if (count % 10000 === 0) {
       console.log(count)
@@ -112,9 +113,9 @@ export function fillCellsBruteForce(grid) {
 
             const nextCoordinates = getNextEmptyCellCoordinates(grid, rowNum, colNum)
 
-            if (!nextCoordinates) finalGrid = curGrid
-
-            if (!finalGrid) {
+            if (!nextCoordinates) {
+              finalGrid = curGrid
+            } else if (!finalGrid) {
               const [nextRowNum, nextColNum] = nextCoordinates
               recurse(curGrid, nextRowNum, nextColNum)
             }
@@ -125,7 +126,7 @@ export function fillCellsBruteForce(grid) {
   }
 
   recurse(grid)
-  return { grid: finalGrid, recursiveIterations: count }
+  return { grid: finalGrid!, recursiveIterations: count }
 }
 
 /* istanbul ignore next */
@@ -151,7 +152,7 @@ export function run() {
     const finalGrid = bruteForceResults.grid
     recursiveIterations = bruteForceResults.recursiveIterations
     console.log('\nAfter brute force recursion')
-    printGrid(finalGrid)
+    finalGrid && printGrid(finalGrid)
     t3 = Date.now()
   }
 
