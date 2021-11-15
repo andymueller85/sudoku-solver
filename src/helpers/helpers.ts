@@ -55,10 +55,7 @@ export function getUniqueArrays<T>(...arrayOfArrays: T[][]) {
 
 export function gridHasAnyDeadEnds(grid: Grid) {
   return grid.some((r, rIdx) =>
-    r.some(
-      (_, cIdx) =>
-        !isFilled(grid[rIdx][cIdx]) && getPossibleCellValues(grid, rIdx, cIdx).length === 0
-    )
+    r.some((cell, cIdx) => !isFilled(cell) && getPossibleCellValues(grid, rIdx, cIdx).length === 0)
   )
 }
 
