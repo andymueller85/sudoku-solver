@@ -202,7 +202,7 @@ export function unflattenBoxes(grid: Array<Array<string | Row>>) {
   const iterable: ArrayLike<string | Row> = { length: GRID_SIZE }
   const unflattenedGrid = Array.from(iterable, () => Array.from(iterable))
 
-  grid.forEach((b, bIdx: number) => {
+  grid.forEach((b, bIdx) => {
     const [topLeftRow, topLeftCol] = getBoxTopLeftCoordinates(bIdx)
 
     unflattenBox(b).forEach((r, rIdx) => {
