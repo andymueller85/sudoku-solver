@@ -199,8 +199,8 @@ export function unflattenBox<T extends string | Row>(boxArray: Array<T>) {
 export function unflattenBoxes(grid: Grid): Grid
 export function unflattenBoxes(grid: PossiblesGrid): PossiblesGrid
 export function unflattenBoxes(grid: Array<Array<string | Row>>) {
-  const iterable: ArrayLike<string | Row> = { length: GRID_SIZE }
-  const unflattenedGrid = Array.from(iterable, () => Array.from(iterable))
+  const arrayLike: ArrayLike<string | Row> = { length: GRID_SIZE }
+  const unflattenedGrid = Array.from(arrayLike, () => Array.from(arrayLike))
 
   grid.forEach((b, bIdx) => {
     const [topLeftRow, topLeftCol] = getBoxTopLeftCoordinates(bIdx)
@@ -276,7 +276,7 @@ export function getBoxMissingNums(grid: Grid, topLeftRowNum: number, topLeftColN
 }
 
 //************** Missing Cells fns ****************/
-export function getMissingCells(arr: Array<string>) {
+export function getMissingCells(arr: Row) {
   return arr
     .map((cell, index) => ({ cell, index }))
     .filter(({ cell }) => !isFilled(cell))
@@ -296,7 +296,7 @@ export function getBoxMissingCells(grid: Grid, topLeftRowNum: number, topLeftCol
 }
 
 //************** validity fns ****************/
-export function isValid(arr: Array<string>) {
+export function isValid(arr: Row) {
   const filledNums = getFilledNums(arr)
 
   return (
@@ -306,7 +306,7 @@ export function isValid(arr: Array<string>) {
 }
 
 export function everyRowIsValid(grid: Grid) {
-  return grid.every((_, rowNum) => isValid(grid[rowNum]))
+  return grid.every(isValid)
 }
 
 export function columnIsValid(grid: Grid, colNum: number) {
