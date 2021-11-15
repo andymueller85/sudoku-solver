@@ -186,23 +186,10 @@ export function flattenBox(
     .flat()
 }
 
-function isRow(r: Row | PossiblesRow): r is Row {
-  return typeof r[0] === 'string'
-}
-
-function isGrid(g: Grid | PossiblesGrid): g is Grid {
-  return isRow(g[0])
-}
-
 export function flattenBoxes(grid: Grid): Grid
 export function flattenBoxes(grid: PossiblesGrid): PossiblesGrid
-export function flattenBoxes(grid: Grid | PossiblesGrid) {
-  // TODO: This is ridiculous - can't be the right way to do this.
-  if (isGrid(grid)) {
-    return boxIndexes.map(r => boxIndexes.map(c => flattenBox(grid, r, c))).flat()
-  } else {
-    return boxIndexes.map(r => boxIndexes.map(c => flattenBox(grid, r, c))).flat()
-  }
+export function flattenBoxes(grid: Array<Array<any>>): Grid | PossiblesGrid {
+  return boxIndexes.map(r => boxIndexes.map(c => flattenBox(grid, r, c))).flat()
 }
 
 export function unflattenBox<T extends string | Row>(boxArray: Array<T>) {
@@ -211,26 +198,18 @@ export function unflattenBox<T extends string | Row>(boxArray: Array<T>) {
 
 export function unflattenBoxes(grid: Grid): Grid
 export function unflattenBoxes(grid: PossiblesGrid): PossiblesGrid
-export function unflattenBoxes(grid: Grid | PossiblesGrid) {
-  let unflattenedGrid = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }))
+export function unflattenBoxes(grid: Array<Array<string | Row>>) {
+  const iterable: ArrayLike<string | Row> = { length: GRID_SIZE }
+  const unflattenedGrid = Array.from(iterable, () => Array.from(iterable))
 
-  grid.forEach((b, bIdx) => {
+  grid.forEach((b, bIdx: number) => {
     const [topLeftRow, topLeftCol] = getBoxTopLeftCoordinates(bIdx)
 
-    // TODO: no way this is right
-    if (isRow(b)) {
-      unflattenBox(b).forEach((r, rIdx) => {
-        r.forEach((c, cIdx) => {
-          unflattenedGrid[topLeftRow + rIdx][topLeftCol + cIdx] = c
-        })
+    unflattenBox(b).forEach((r, rIdx) => {
+      r.forEach((c, cIdx) => {
+        unflattenedGrid[topLeftRow + rIdx][topLeftCol + cIdx] = c
       })
-    } else {
-      unflattenBox(b).forEach((r, rIdx) => {
-        r.forEach((c, cIdx) => {
-          unflattenedGrid[topLeftRow + rIdx][topLeftCol + cIdx] = c
-        })
-      })
-    }
+    })
   })
 
   return unflattenedGrid
