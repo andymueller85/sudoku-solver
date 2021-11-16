@@ -9,7 +9,7 @@ import {
   swapXY
 } from '../helpers/helpers'
 import { miniGridIndexes } from '../helpers/helpers'
-import { Grid, PossiblesGrid, PossiblesRow, Row } from '../types'
+import { PossiblesGrid, PossiblesRow } from '../types'
 
 const { cloneDeep } = lodash
 

@@ -4,6 +4,8 @@
     "lib": ["ESNext"],
     "outDir": "dist",
     "types": ["jest", "node"],
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noImplicitReturns": true
   }
 }

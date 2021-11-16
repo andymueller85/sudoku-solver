@@ -7,7 +7,7 @@ import {
   swapXY,
   unflattenBoxes
 } from '../helpers/helpers'
-import { Matches, PossiblesGrid, PossiblesRow, Row } from '../types'
+import { Matches, PossiblesGrid, PossiblesRow } from '../types'
 
 const { cloneDeep } = lodash
 

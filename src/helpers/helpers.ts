@@ -1,4 +1,3 @@
-import { extend } from 'lodash'
 import { Grid, PossiblesGrid, PossiblesRow, Row } from '../types'
 
 export const GRID_SIZE = 9
