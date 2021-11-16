@@ -93,6 +93,8 @@ export function fillCellsBruteForce(grid: Grid): GridWithMeta {
 
   function recurse(myGrid: Grid, curRow = 0, curCol = 0) {
     count++
+
+    /* istanbul ignore next */
     if (count % 10000 === 0) {
       console.log(count)
       console.log(stringifyGrid(myGrid))
