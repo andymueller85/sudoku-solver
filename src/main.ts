@@ -11,7 +11,6 @@ import {
   gridHasAnyDeadEnds,
   gridIsComplete,
   gridIsValid,
-  GRID_SIZE,
   isFilled,
   printGrid,
   seedGrid,
@@ -22,7 +21,7 @@ import { Grid, GridWithMeta, PossiblesGrid } from './types'
 const { cloneDeep } = lodash
 const DEBUG = false
 
-const inputName = 'input_1.txt'
+const inputName = 'input_4.txt'
 const fileInput = fs.readFileSync(`./${inputName}`, 'utf8')
 
 /* istanbul ignore next */
@@ -91,44 +90,36 @@ export function fillCellsBruteForce(grid: Grid): GridWithMeta {
   let finalGrid: Grid | undefined = undefined
   let count = 0
 
-  function recurse(myGrid: Grid, curRow = 0, curCol = 0) {
-    count++
+  function goToNext(g: Grid, r: number, c: number): void {
+    const nextCoordinates = getNextEmptyCellCoordinates(g, r, c)
 
-    /* istanbul ignore next */
-    if (count % 10000 === 0) {
-      console.log(count, curRow, curCol)
-      console.log(stringifyGrid(myGrid))
+    if (!nextCoordinates) {
+      finalGrid = g
+    } else if (!finalGrid) {
+      recurse(g, nextCoordinates[0], nextCoordinates[1])
     }
+  }
+
+  function recurse(myGrid: Grid, curRow = 0, curCol = 0): void {
+    /* istanbul ignore next */
+    if (++count % 1000 === 0) console.log(`\n${count}`, `\n${stringifyGrid(myGrid)}`)
     const curGrid = cloneDeep(myGrid)
 
-    for (let rowNum = curRow; rowNum < GRID_SIZE; rowNum++) {
-      for (let colNum = rowNum === curRow ? curCol : 0; colNum < GRID_SIZE; colNum++) {
-        if (!isFilled(curGrid[rowNum][colNum])) {
-          if (gridHasAnyDeadEnds(curGrid)) {
-            return
-          }
+    if (!isFilled(curGrid[curRow][curCol])) {
+      getPossibleCellValues(curGrid, curRow, curCol).forEach(possibleNum => {
+        curGrid[curRow][curCol] = possibleNum
 
-          const cellPossibles = getPossibleCellValues(curGrid, rowNum, colNum)
-
-          cellPossibles.forEach(possibleNum => {
-            curGrid[rowNum][colNum] = possibleNum
-
-            const nextCoordinates = getNextEmptyCellCoordinates(grid, rowNum, colNum)
-
-            if (!nextCoordinates) {
-              finalGrid = curGrid
-            } else if (!finalGrid) {
-              const [nextRowNum, nextColNum] = nextCoordinates
-              recurse(curGrid, nextRowNum, nextColNum)
-            }
-          })
+        if (!gridHasAnyDeadEnds(curGrid)) {
+          goToNext(curGrid, curRow, curCol)
         }
-      }
+      })
+    } else {
+      goToNext(curGrid, curRow, curCol)
     }
   }
 
   recurse(grid)
-  return { grid: finalGrid!, iterations: count }
+  return { grid: finalGrid || grid, iterations: count }
 }
 
 /* istanbul ignore next */
