@@ -22,7 +22,7 @@ import { Grid, GridWithMeta, PossiblesGrid } from './types'
 const { cloneDeep } = lodash
 const DEBUG = false
 
-const inputName = 'input_3.txt'
+const inputName = 'input_1.txt'
 const fileInput = fs.readFileSync(`./${inputName}`, 'utf8')
 
 /* istanbul ignore next */
@@ -48,7 +48,7 @@ export function applyDefinites(grid: Grid, possibleValsGrid: PossiblesGrid) {
 }
 
 //************** orchestration ****************/
-export function fillCellsLogically(grid: Grid) {
+export function fillCellsLogically(grid: Grid): GridWithMeta {
   let updatedGrid = cloneDeep(grid)
   let prevFilledCellCount = 0
   let filledCellCount = getFilledCellCount(updatedGrid)
@@ -87,7 +87,7 @@ export function fillCellsLogically(grid: Grid) {
 }
 
 export function fillCellsBruteForce(grid: Grid): GridWithMeta {
-  if (gridIsComplete(grid)) return { grid, recursiveIterations: 0 }
+  if (gridIsComplete(grid)) return { grid, iterations: 0 }
   let finalGrid: Grid | undefined = undefined
   let count = 0
 
@@ -96,7 +96,7 @@ export function fillCellsBruteForce(grid: Grid): GridWithMeta {
 
     /* istanbul ignore next */
     if (count % 10000 === 0) {
-      console.log(count)
+      console.log(count, curRow, curCol)
       console.log(stringifyGrid(myGrid))
     }
     const curGrid = cloneDeep(myGrid)
@@ -128,7 +128,7 @@ export function fillCellsBruteForce(grid: Grid): GridWithMeta {
   }
 
   recurse(grid)
-  return { grid: finalGrid!, recursiveIterations: count }
+  return { grid: finalGrid!, iterations: count }
 }
 
 /* istanbul ignore next */
@@ -152,7 +152,7 @@ export function run() {
     console.log('\n🕵️‍♀️🧩 Still some work to do... 🧩🕵️‍♀️')
     const bruteForceResults = fillCellsBruteForce(logicallyFilledGrid)
     const finalGrid = bruteForceResults.grid
-    recursiveIterations = bruteForceResults.recursiveIterations
+    recursiveIterations = bruteForceResults.iterations
     console.log('\nAfter brute force recursion')
     finalGrid && printGrid(finalGrid)
     t3 = Date.now()

@@ -6,6 +6,7 @@
     "types": ["jest", "node"],
     "moduleResolution": "node",
     "noUnusedLocals": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "sourceMap": true
   }
 }

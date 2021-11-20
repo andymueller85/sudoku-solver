@@ -6,6 +6,7 @@
   "module": "dist",
   "scripts": {
     "build": "tsc",
+    "build:watch": "tsc --watch",
     "clean": "rd /s /q dist",
     "install:frozen": "yarn --frozen-lockfile",
     "start": "ts-node ./src/index.ts -r -esm",
