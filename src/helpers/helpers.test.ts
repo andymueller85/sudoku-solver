@@ -170,11 +170,11 @@ describe('General helper functions', () => {
     })
   })
 
-  describe('getGridPossibleValues', () => {
-    const { getGridPossibleValues } = helpers
+  describe('getGridCandidates', () => {
+    const { getGridCandidates } = helpers
 
     test('should return a grid containing arrays for the possible values in each cell', () => {
-      expect(stringifyGrid(getGridPossibleValues(grid), true)).toMatchInlineSnapshot(`
+      expect(stringifyGrid(getGridCandidates(grid), true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  2,8  |  2,5  |  3  |  7  |
         -------------------------------------------------------------
@@ -416,16 +416,16 @@ describe('Box helper functions', () => {
     })
   })
 
-  describe('getPossibleCellValues', () => {
-    const { getPossibleCellValues } = helpers
+  describe('getCellCandidates', () => {
+    const { getCellCandidates } = helpers
 
     test.each([
       [0, 2, '6'.split('')],
       [1, 4, '157'.split('')],
       [5, 8, '1258'.split('')],
       [7, 5, '2478'.split('')]
-    ])('getPossibleCellValues(grid, %d, %d) === %j', (rowNum, colNum, expected) => {
-      expect(getPossibleCellValues(grid, rowNum, colNum)).toEqual(expected)
+    ])('getCellCandidates(grid, %d, %d) === %j', (rowNum, colNum, expected) => {
+      expect(getCellCandidates(grid, rowNum, colNum)).toEqual(expected)
     })
   })
 })
@@ -443,7 +443,7 @@ describe('Filled nums functions', () => {
     })
 
     test('should work for full group', () => {
-      expect(getFilledNums(firstRowCompleteGrid[0])).toEqual(helpers.possibleNums)
+      expect(getFilledNums(firstRowCompleteGrid[0])).toEqual(helpers.sudokuNums)
     })
   })
 
@@ -459,7 +459,7 @@ describe('Filled nums functions', () => {
     })
 
     test('should work for full column', () => {
-      expect(getColumnFilledNums(firstColumnCompleteGrid, 0)).toEqual(helpers.possibleNums)
+      expect(getColumnFilledNums(firstColumnCompleteGrid, 0)).toEqual(helpers.sudokuNums)
     })
   })
 })
@@ -473,7 +473,7 @@ describe('Missing nums functions', () => {
     })
 
     test('should work for an empty group', () => {
-      expect(getMissingNums(firstRowEmptyGrid[0])).toEqual(helpers.possibleNums)
+      expect(getMissingNums(firstRowEmptyGrid[0])).toEqual(helpers.sudokuNums)
     })
 
     test('should work for a full group', () => {
@@ -497,7 +497,7 @@ describe('Missing nums functions', () => {
     })
 
     test('should work for an empty column', () => {
-      expect(getColumnMissingNums(firstColumnEmptyGrid, 0)).toEqual(helpers.possibleNums)
+      expect(getColumnMissingNums(firstColumnEmptyGrid, 0)).toEqual(helpers.sudokuNums)
     })
 
     test('s hould work for a full  column', () => {
@@ -513,7 +513,7 @@ describe('Missing nums functions', () => {
     })
 
     test('should work for an empty box', () => {
-      expect(getBoxMissingNums(firstBoxEmptyGrid, 0, 0)).toEqual(helpers.possibleNums)
+      expect(getBoxMissingNums(firstBoxEmptyGrid, 0, 0)).toEqual(helpers.sudokuNums)
     })
 
     test('should work for a completed box', () => {

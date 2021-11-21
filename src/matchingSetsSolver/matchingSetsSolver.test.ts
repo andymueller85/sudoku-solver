@@ -1,26 +1,26 @@
 import fs from 'fs'
-import { getGridPossibleValues, seedGrid, stringifyGrid } from '../helpers/helpers'
+import { getGridCandidates, seedGrid, stringifyGrid } from '../helpers/helpers'
 import * as matchingSetsSolver from './matchingSetsSolver'
 
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)
-const possibleValsGrid = getGridPossibleValues(grid)
+const candidatesGrid = getGridCandidates(grid)
 
 describe('Matching sets solver functions', () => {
   describe('findMatches', () => {
     const { findMatches } = matchingSetsSolver
 
-    test('should find all sets of matches for an array of possible values', () => {
-      expect(findMatches(possibleValsGrid[0])).toMatchSnapshot()
+    test('should find all sets of matches for an array of candidates', () => {
+      expect(findMatches(candidatesGrid[0])).toMatchSnapshot()
     })
   })
 
-  describe('whittlePossibles', () => {
-    const { whittlePossibles, findMatches } = matchingSetsSolver
+  describe('whittleCandidates', () => {
+    const { whittleCandidates, findMatches } = matchingSetsSolver
 
     test('should process the matching sets, finding matches where the count of the matching sets equals the count of numbers in the set, eliminating those values from all other sets', () => {
       // just printing original for comparison
-      expect(stringifyGrid(possibleValsGrid, true)).toMatchInlineSnapshot(`
+      expect(stringifyGrid(candidatesGrid, true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  2,8  |  2,5  |  3  |  7  |
         -------------------------------------------------------------
@@ -42,14 +42,11 @@ describe('Matching sets solver functions', () => {
         -----------------------------------------------------------------"
       `)
 
-      const updatedPossibleVals = whittlePossibles(
-        possibleValsGrid.map(findMatches),
-        possibleValsGrid
-      )
+      const updatedCandidates = whittleCandidates(candidatesGrid.map(findMatches), candidatesGrid)
 
-      expect(updatedPossibleVals[0][5]).toEqual(['8'])
-      expect(updatedPossibleVals[6][8]).toEqual(['4'])
-      expect(stringifyGrid(updatedPossibleVals, true)).toMatchInlineSnapshot(`
+      expect(updatedCandidates[0][5]).toEqual(['8'])
+      expect(updatedCandidates[6][8]).toEqual(['4'])
+      expect(stringifyGrid(updatedCandidates, true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  8  |  2,5  |  3  |  7  |
         -----------------------------------------------------------
@@ -77,10 +74,10 @@ describe('Matching sets solver functions', () => {
     const { processRowMatchingSets } = matchingSetsSolver
 
     test('should process all row matching sets', () => {
-      const updatedPossibleVals = processRowMatchingSets(possibleValsGrid)
+      const updatedCandidates = processRowMatchingSets(candidatesGrid)
 
-      expect(updatedPossibleVals[6][8]).toEqual(['4'])
-      expect(stringifyGrid(updatedPossibleVals, true)).toMatchInlineSnapshot(`
+      expect(updatedCandidates[6][8]).toEqual(['4'])
+      expect(stringifyGrid(updatedCandidates, true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  8  |  2,5  |  3  |  7  |
         -----------------------------------------------------------
@@ -108,13 +105,13 @@ describe('Matching sets solver functions', () => {
     const { processColumnMatchingSets } = matchingSetsSolver
 
     test('should process all column matching sets', () => {
-      const updatedPossibleVals = processColumnMatchingSets(possibleValsGrid)
+      const updatedCandidates = processColumnMatchingSets(candidatesGrid)
 
-      expect(updatedPossibleVals[1][4]).toEqual('17'.split(''))
-      expect(updatedPossibleVals[3][4]).toEqual('1467'.split(''))
-      expect(updatedPossibleVals[5][4]).toEqual('167'.split(''))
-      expect(updatedPossibleVals[7][4]).toEqual('467'.split(''))
-      expect(stringifyGrid(updatedPossibleVals, true)).toMatchInlineSnapshot(`
+      expect(updatedCandidates[1][4]).toEqual('17'.split(''))
+      expect(updatedCandidates[3][4]).toEqual('1467'.split(''))
+      expect(updatedCandidates[5][4]).toEqual('167'.split(''))
+      expect(updatedCandidates[7][4]).toEqual('467'.split(''))
+      expect(stringifyGrid(updatedCandidates, true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  2,8  |  2,5  |  3  |  7  |
         -------------------------------------------------------------
@@ -142,14 +139,14 @@ describe('Matching sets solver functions', () => {
     const { processBoxMatchingSets } = matchingSetsSolver
 
     test('should process all box matching sets', () => {
-      const updatedPossibleVals = processBoxMatchingSets(possibleValsGrid)
+      const updatedCandidates = processBoxMatchingSets(candidatesGrid)
 
-      expect(updatedPossibleVals[0][5]).toEqual(['8'])
-      expect(updatedPossibleVals[1][3]).toEqual('78'.split(''))
-      expect(updatedPossibleVals[1][4]).toEqual('17'.split(''))
-      expect(updatedPossibleVals[7][0]).toEqual('18'.split(''))
-      expect(updatedPossibleVals[7][1]).toEqual(['2'])
-      expect(stringifyGrid(updatedPossibleVals, true)).toMatchInlineSnapshot(`
+      expect(updatedCandidates[0][5]).toEqual(['8'])
+      expect(updatedCandidates[1][3]).toEqual('78'.split(''))
+      expect(updatedCandidates[1][4]).toEqual('17'.split(''))
+      expect(updatedCandidates[7][0]).toEqual('18'.split(''))
+      expect(updatedCandidates[7][1]).toEqual(['2'])
+      expect(stringifyGrid(updatedCandidates, true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  8  |  2,5  |  3  |  7  |
         -----------------------------------------------------------
@@ -176,9 +173,9 @@ describe('Matching sets solver functions', () => {
   describe('processMatchingSets', () => {
     const { processMatchingSets } = matchingSetsSolver
     test('should process all row, column and box matching sets', () => {
-      const updatedPossibleVals = processMatchingSets(possibleValsGrid)
+      const updatedCandidates = processMatchingSets(candidatesGrid)
 
-      expect(stringifyGrid(updatedPossibleVals, true)).toMatchInlineSnapshot(`
+      expect(stringifyGrid(updatedCandidates, true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  8  |  2,5  |  3  |  7  |
         -----------------------------------------------------------

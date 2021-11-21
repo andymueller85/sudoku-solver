@@ -1,7 +1,7 @@
-import { Grid, PossiblesGrid, PossiblesRow, Row } from '../types'
+import { Grid, CandidatesGrid, CandidatesRow, Row } from '../types'
 
 export const GRID_SIZE = 9
-export const possibleNums = '123456789'.split('')
+export const sudokuNums = '123456789'.split('')
 export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
 
 export const boxIndexes = [0, 3, 6]
@@ -25,8 +25,8 @@ export function getColumnArray(grid: Grid, colNum: number) {
 }
 
 export function swapXY(grid: Grid): Grid
-export function swapXY(grid: PossiblesGrid): PossiblesGrid
-export function swapXY(grid: Grid | PossiblesGrid) {
+export function swapXY(grid: CandidatesGrid): CandidatesGrid
+export function swapXY(grid: Grid | CandidatesGrid) {
   return allIndexes.map((c: number) => grid.map(r => r[c]))
 }
 
@@ -54,7 +54,7 @@ export function getUniqueArrays<T>(...arrayOfArrays: T[][]) {
 
 export function gridHasAnyDeadEnds(grid: Grid) {
   return grid.some((r, rIdx) =>
-    r.some((cell, cIdx) => !isFilled(cell) && getPossibleCellValues(grid, rIdx, cIdx).length === 0)
+    r.some((cell, cIdx) => !isFilled(cell) && getCellCandidates(grid, rIdx, cIdx).length === 0)
   )
 }
 
@@ -81,7 +81,7 @@ export function getNextEmptyCellCoordinates(
   return getNextEmptyCellCoordinates(grid, newRowNum, newColNum)
 }
 
-export function stringifyGrid(grid: Grid | PossiblesGrid, isPossibleVals = false) {
+export function stringifyGrid(grid: Grid | CandidatesGrid, isPossibleVals = false) {
   const vertSeparator = '|'
   const innerSeparator = `  ${vertSeparator}  `
   const rowBegin = `${vertSeparator}  `
@@ -126,7 +126,7 @@ export function seedGrid(input: string): Grid {
     .map(r => [...r])
 }
 
-export function getGridPossibleValues(grid: Grid): PossiblesGrid {
+export function getGridCandidates(grid: Grid): CandidatesGrid {
   return grid.map((r, rIdx) =>
     r.map((c, cIdx) => {
       if (isFilled(c)) return [c]
@@ -166,13 +166,13 @@ export function getBoxIndexes(topLeftRowOrColumn: number) {
 }
 
 export function flattenBox(
-  grid: PossiblesGrid,
+  grid: CandidatesGrid,
   topLeftRowNum: number,
   topLeftColNum: number
-): PossiblesRow
+): CandidatesRow
 export function flattenBox(grid: Grid, topLeftRowNum: number, topLeftColNum: number): Row
 export function flattenBox(
-  grid: Grid | PossiblesGrid,
+  grid: Grid | CandidatesGrid,
   topLeftRowNum: number,
   topLeftColNum: number
 ) {
@@ -183,8 +183,8 @@ export function flattenBox(
 }
 
 export function flattenBoxes(grid: Grid): Grid
-export function flattenBoxes(grid: PossiblesGrid): PossiblesGrid
-export function flattenBoxes(grid: Array<Array<any>>): Grid | PossiblesGrid {
+export function flattenBoxes(grid: CandidatesGrid): CandidatesGrid
+export function flattenBoxes(grid: Array<Array<any>>): Grid | CandidatesGrid {
   return boxIndexes.map(r => boxIndexes.map(c => flattenBox(grid, r, c))).flat()
 }
 
@@ -193,7 +193,7 @@ export function unflattenBox<T extends string | Row>(boxArray: Array<T>) {
 }
 
 export function unflattenBoxes(grid: Grid): Grid
-export function unflattenBoxes(grid: PossiblesGrid): PossiblesGrid
+export function unflattenBoxes(grid: CandidatesGrid): CandidatesGrid
 export function unflattenBoxes(grid: Array<Array<string | Row>>) {
   const arrayLike: ArrayLike<string | Row> = { length: GRID_SIZE }
   const unflattenedGrid = Array.from(arrayLike, () => Array.from(arrayLike))
@@ -237,7 +237,7 @@ export function columnNeighborsContainNumber(grid: Grid, curCol: number, num: st
     .every(c => getColumnFilledNums(grid, c).includes(num))
 }
 
-export function getPossibleCellValues(grid: Grid, rowNum: number, colNum: number) {
+export function getCellCandidates(grid: Grid, rowNum: number, colNum: number) {
   const rowMissingNums = getRowMissingNums(grid, rowNum)
   const colMissingNums = getColumnMissingNums(grid, colNum)
   const boxMissingNums = getBoxMissingNums(grid, getBoxTopLeft(rowNum), getBoxTopLeft(colNum))
@@ -256,7 +256,7 @@ export function getColumnFilledNums(grid: Grid, colNum: number) {
 
 //************** Missing Nums fns ****************/
 export function getMissingNums(arr: Array<string>) {
-  return possibleNums.filter(n => !getFilledNums(arr).includes(n))
+  return sudokuNums.filter(n => !getFilledNums(arr).includes(n))
 }
 
 export function getRowMissingNums(grid: Grid, rowNum: number) {
@@ -297,7 +297,7 @@ export function isValid(arr: Row) {
 
   return (
     allArraysAreEqual(filledNums, [...new Set(filledNums)]) &&
-    filledNums.every(n => possibleNums.includes(n))
+    filledNums.every(n => sudokuNums.includes(n))
   )
 }
 

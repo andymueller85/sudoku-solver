@@ -7,13 +7,13 @@ import {
   swapXY,
   unflattenBoxes
 } from '../helpers/helpers'
-import { Matches, PossiblesGrid, PossiblesRow } from '../types'
+import { Matches, CandidatesGrid, CandidatesRow } from '../types'
 
 const { cloneDeep } = lodash
 
-export function findMatches(arr: PossiblesRow): Array<Matches> {
+export function findMatches(arr: CandidatesRow): Array<Matches> {
   return arr.map((c, arrIdx, cells) => ({
-    possibles: c,
+    candidates: c,
     matches: cells
       .map((vals, idx) => ({ vals, idx }))
       .filter(
@@ -24,27 +24,27 @@ export function findMatches(arr: PossiblesRow): Array<Matches> {
   }))
 }
 
-export function whittlePossibles(
+export function whittleCandidates(
   matches: Array<Matches[]>,
-  possiblesGrid: PossiblesGrid
-): PossiblesGrid {
-  let possibleValsGrid = cloneDeep(possiblesGrid)
+  candidatesGrid: CandidatesGrid
+): CandidatesGrid {
+  let candidatesGridClone = cloneDeep(candidatesGrid)
 
   for (let n = 2; n < GRID_SIZE; n++) {
     matches.forEach((m, rowIdx: number) => {
-      const matchesOfSizeN = m.filter(r => r.matches.length > 0 && r.possibles.length === n)
+      const matchesOfSizeN = m.filter(r => r.matches.length > 0 && r.candidates.length === n)
 
       if (matchesOfSizeN.length === n) {
-        const matchingSets = getUniqueArrays(...matchesOfSizeN.map(m => m.possibles))
+        const matchingSets = getUniqueArrays(...matchesOfSizeN.map(m => m.candidates))
 
-        matchingSets.forEach(possibles => {
+        matchingSets.forEach(candidates => {
           const setIndexes = [...new Set(matchesOfSizeN.map(m => m.matches).flat())]
 
           allIndexes
             .filter(n => !setIndexes.includes(n))
             .forEach(colIdx => {
-              possibleValsGrid[rowIdx][colIdx] = possibleValsGrid[rowIdx][colIdx].filter(
-                (v, _, a) => n > a.length || !possibles.includes(v)
+              candidatesGridClone[rowIdx][colIdx] = candidatesGridClone[rowIdx][colIdx].filter(
+                (v, _, a) => n > a.length || !candidates.includes(v)
               )
             })
         })
@@ -52,29 +52,29 @@ export function whittlePossibles(
     })
   }
 
-  return possibleValsGrid
+  return candidatesGridClone
 }
 
-export function processRowMatchingSets(possibleValsGrid: PossiblesGrid) {
-  return whittlePossibles(possibleValsGrid.map(findMatches), possibleValsGrid)
+export function processRowMatchingSets(candidatesGrid: CandidatesGrid) {
+  return whittleCandidates(candidatesGrid.map(findMatches), candidatesGrid)
 }
 
-export function processColumnMatchingSets(possibleValsGrid: PossiblesGrid) {
-  const swappedGrid = swapXY(possibleValsGrid)
+export function processColumnMatchingSets(candidatesGrid: CandidatesGrid) {
+  const swappedGrid = swapXY(candidatesGrid)
   const columnMatches = swappedGrid.map(findMatches)
 
-  return swapXY(whittlePossibles(columnMatches, swappedGrid))
+  return swapXY(whittleCandidates(columnMatches, swappedGrid))
 }
 
-export function processBoxMatchingSets(possibleValsGrid: PossiblesGrid) {
-  const flattenedBoxGrid = flattenBoxes(possibleValsGrid)
+export function processBoxMatchingSets(candidatesGrid: CandidatesGrid) {
+  const flattenedBoxGrid = flattenBoxes(candidatesGrid)
   const boxMatches = flattenedBoxGrid.map(findMatches)
 
-  return unflattenBoxes(whittlePossibles(boxMatches, flattenedBoxGrid))
+  return unflattenBoxes(whittleCandidates(boxMatches, flattenedBoxGrid))
 }
 
-export function processMatchingSets(possibleValsGrid: PossiblesGrid) {
-  let myGrid = processBoxMatchingSets(possibleValsGrid)
+export function processMatchingSets(candidatesGrid: CandidatesGrid) {
+  let myGrid = processBoxMatchingSets(candidatesGrid)
   myGrid = processColumnMatchingSets(myGrid)
   myGrid = processRowMatchingSets(myGrid)
 

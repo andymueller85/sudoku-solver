@@ -1,10 +1,10 @@
 import fs from 'fs'
-import { getGridPossibleValues, possibleNums, seedGrid, stringifyGrid } from '../helpers/helpers'
+import { getGridCandidates, sudokuNums, seedGrid, stringifyGrid } from '../helpers/helpers'
 import * as boxIntersectionSolver from './boxIntersectionSolver'
 
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)
-const possibleValsGrid = getGridPossibleValues(grid)
+const candidatesGrid = getGridCandidates(grid)
 
 describe('Box intersection solver functions', () => {
   describe('getImpossibilities', () => {
@@ -15,7 +15,7 @@ describe('Box intersection solver functions', () => {
     })
 
     test('should work if empty arrays passed', () => {
-      expect(getImpossibilities([''.split(''), ''.split('')])).toEqual(possibleNums)
+      expect(getImpossibilities([''.split(''), ''.split('')])).toEqual(sudokuNums)
     })
 
     test('should return empty array if all numbers accounted for', () => {
@@ -40,7 +40,7 @@ describe('Box intersection solver functions', () => {
 
     test('should narrow down possibilities for the box, as well as intersecting rows', () => {
       // just printing original grid for comparison
-      expect(stringifyGrid(possibleValsGrid, true)).toMatchInlineSnapshot(`
+      expect(stringifyGrid(candidatesGrid, true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  2,8  |  2,5  |  3  |  7  |
         -------------------------------------------------------------
@@ -62,7 +62,7 @@ describe('Box intersection solver functions', () => {
         -----------------------------------------------------------------"
       `)
 
-      expect(stringifyGrid(processBoxRowIntersections(possibleValsGrid, 0, 0), true))
+      expect(stringifyGrid(processBoxRowIntersections(candidatesGrid, 0, 0), true))
         .toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  2,8  |  2,5  |  3  |  7  |
@@ -91,7 +91,7 @@ describe('Box intersection solver functions', () => {
     const { allBoxRowIntersections } = boxIntersectionSolver
 
     test('should process all box / row intersections for the grid', () => {
-      expect(stringifyGrid(allBoxRowIntersections(possibleValsGrid), true)).toMatchInlineSnapshot(`
+      expect(stringifyGrid(allBoxRowIntersections(candidatesGrid), true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  2,8  |  2,5  |  3  |  7  |
         -------------------------------------------------------------
@@ -119,8 +119,7 @@ describe('Box intersection solver functions', () => {
     const { rowAndColBoxIntersections } = boxIntersectionSolver
 
     test('should process all box intersections for all rows and columns', () => {
-      expect(stringifyGrid(rowAndColBoxIntersections(possibleValsGrid), true))
-        .toMatchInlineSnapshot(`
+      expect(stringifyGrid(rowAndColBoxIntersections(candidatesGrid), true)).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |  9  |  1  |  6  |  4  |  2,5  |  2,8  |  2,5  |  3  |  7  |
         -------------------------------------------------------------

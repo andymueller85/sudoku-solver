@@ -1,67 +1,67 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Matching sets solver functions findMatches should find all sets of matches for an array of possible values 1`] = `
+exports[`Matching sets solver functions findMatches should find all sets of matches for an array of candidates 1`] = `
 Array [
   Object {
-    "matches": Array [],
-    "possibles": Array [
+    "candidates": Array [
       "9",
     ],
+    "matches": Array [],
   },
   Object {
-    "matches": Array [],
-    "possibles": Array [
+    "candidates": Array [
       "1",
     ],
+    "matches": Array [],
   },
   Object {
-    "matches": Array [],
-    "possibles": Array [
+    "candidates": Array [
       "6",
     ],
+    "matches": Array [],
   },
   Object {
-    "matches": Array [],
-    "possibles": Array [
+    "candidates": Array [
       "4",
     ],
+    "matches": Array [],
   },
   Object {
+    "candidates": Array [
+      "2",
+      "5",
+    ],
     "matches": Array [
       6,
     ],
-    "possibles": Array [
-      "2",
-      "5",
-    ],
   },
   Object {
-    "matches": Array [],
-    "possibles": Array [
+    "candidates": Array [
       "2",
       "8",
     ],
+    "matches": Array [],
   },
   Object {
-    "matches": Array [
-      4,
-    ],
-    "possibles": Array [
+    "candidates": Array [
       "2",
       "5",
     ],
+    "matches": Array [
+      4,
+    ],
   },
   Object {
-    "matches": Array [],
-    "possibles": Array [
+    "candidates": Array [
       "3",
     ],
+    "matches": Array [],
   },
   Object {
-    "matches": Array [],
-    "possibles": Array [
+    "candidates": Array [
       "7",
     ],
+    "matches": Array [],
   },
 ]
 `;

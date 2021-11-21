@@ -5,9 +5,9 @@ import { processMatchingSets } from './matchingSetsSolver/matchingSetsSolver'
 import { fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers'
 import {
   getFilledCellCount,
-  getGridPossibleValues,
+  getGridCandidates,
   getNextEmptyCellCoordinates,
-  getPossibleCellValues,
+  getCellCandidates,
   gridHasAnyDeadEnds,
   gridIsComplete,
   gridIsValid,
@@ -16,7 +16,7 @@ import {
   seedGrid,
   stringifyGrid
 } from './helpers/helpers'
-import { Grid, GridWithMeta, PossiblesGrid } from './types'
+import { Grid, GridWithMeta, CandidatesGrid } from './types'
 
 const { cloneDeep } = lodash
 const DEBUG = false
@@ -32,10 +32,10 @@ function log(grid: Grid, loopCount: number, msg: string) {
   }
 }
 
-export function applyDefinites(grid: Grid, possibleValsGrid: PossiblesGrid) {
+export function applyDefinites(grid: Grid, candidatesGrid: CandidatesGrid) {
   let myGrid = cloneDeep(grid)
 
-  possibleValsGrid.forEach((r, rIdx) =>
+  candidatesGrid.forEach((r, rIdx) =>
     r.forEach((c, cIdx) => {
       if (!isFilled(myGrid[rIdx][cIdx])) {
         if (c.length === 1) myGrid[rIdx][cIdx] = c[0]
@@ -64,14 +64,14 @@ export function fillCellsLogically(grid: Grid): GridWithMeta {
     updatedGrid = fillColumns(updatedGrid)
     log(updatedGrid, loopCount, '- Columns')
 
-    let possibleValsGrid = getGridPossibleValues(updatedGrid)
-    updatedGrid = applyDefinites(updatedGrid, possibleValsGrid)
+    let candidatesGrid = getGridCandidates(updatedGrid)
+    updatedGrid = applyDefinites(updatedGrid, candidatesGrid)
 
-    possibleValsGrid = processMatchingSets(possibleValsGrid)
-    updatedGrid = applyDefinites(updatedGrid, possibleValsGrid)
+    candidatesGrid = processMatchingSets(candidatesGrid)
+    updatedGrid = applyDefinites(updatedGrid, candidatesGrid)
 
-    possibleValsGrid = rowAndColBoxIntersections(possibleValsGrid)
-    updatedGrid = applyDefinites(updatedGrid, possibleValsGrid)
+    candidatesGrid = rowAndColBoxIntersections(candidatesGrid)
+    updatedGrid = applyDefinites(updatedGrid, candidatesGrid)
 
     /* istanbul ignore next */
     if (!gridIsValid(updatedGrid)) {
@@ -100,14 +100,14 @@ export function fillCellsBruteForce(grid: Grid): GridWithMeta {
     }
   }
 
-  function recurse(myGrid: Grid, curRow = 0, curCol = 0): void {
+  function recurse(myGrid: Grid, curRow: number = 0, curCol: number = 0): void {
     /* istanbul ignore next */
     if (++count % 1000 === 0) console.log(`\n${count}`, `\n${stringifyGrid(myGrid)}`)
     const curGrid = cloneDeep(myGrid)
 
     if (!isFilled(curGrid[curRow][curCol])) {
-      getPossibleCellValues(curGrid, curRow, curCol).forEach(possibleNum => {
-        curGrid[curRow][curCol] = possibleNum
+      getCellCandidates(curGrid, curRow, curCol).forEach(candidate => {
+        curGrid[curRow][curCol] = candidate
 
         if (!gridHasAnyDeadEnds(curGrid)) {
           goToNext(curGrid, curRow, curCol)

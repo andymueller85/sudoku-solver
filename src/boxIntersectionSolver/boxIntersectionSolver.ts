@@ -5,16 +5,16 @@ import {
   flattenBox,
   getBoxCurColumn,
   getBoxCurRow,
-  possibleNums,
+  sudokuNums,
   swapXY
 } from '../helpers/helpers'
 import { miniGridIndexes } from '../helpers/helpers'
-import { PossiblesGrid, PossiblesRow } from '../types'
+import { CandidatesGrid, CandidatesRow } from '../types'
 
 const { cloneDeep } = lodash
 
-export function getImpossibilities(arr: PossiblesRow) {
-  return possibleNums.filter(
+export function getImpossibilities(arr: CandidatesRow) {
+  return sudokuNums.filter(
     p => ![...new Set(arr.reduce((acc, cur) => acc.concat(cur)))].includes(p)
   )
 }
@@ -24,11 +24,11 @@ export function getOtherIndexes(i: number) {
 }
 
 export function processBoxRowIntersections(
-  possibleValsGrid: PossiblesGrid,
+  candidatesGrid: CandidatesGrid,
   topLeftRowNum: number,
   topLeftColNum: number
 ) {
-  let myGrid = cloneDeep(possibleValsGrid)
+  let myGrid = cloneDeep(candidatesGrid)
   const flatBox = flattenBox(myGrid, topLeftRowNum, topLeftColNum)
 
   miniGridIndexes.forEach(i => {
@@ -53,8 +53,8 @@ export function processBoxRowIntersections(
   return myGrid
 }
 
-export function allBoxRowIntersections(possibleValsGrid: PossiblesGrid) {
-  let myGrid = cloneDeep(possibleValsGrid)
+export function allBoxRowIntersections(candidatesGrid: CandidatesGrid) {
+  let myGrid = cloneDeep(candidatesGrid)
 
   boxIndexes.forEach(r => {
     boxIndexes.forEach(c => {
@@ -65,8 +65,8 @@ export function allBoxRowIntersections(possibleValsGrid: PossiblesGrid) {
   return myGrid
 }
 
-export function rowAndColBoxIntersections(possibleValsGrid: PossiblesGrid) {
-  let myGrid = cloneDeep(possibleValsGrid)
+export function rowAndColBoxIntersections(candidatesGrid: CandidatesGrid) {
+  let myGrid = cloneDeep(candidatesGrid)
 
   myGrid = allBoxRowIntersections(myGrid)
   myGrid = swapXY(allBoxRowIntersections(swapXY(myGrid)))

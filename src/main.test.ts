@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { expect } from '@jest/globals'
 import * as main from './main'
-import { getGridPossibleValues, seedGrid, stringifyGrid } from './helpers/helpers'
+import { getGridCandidates, seedGrid, stringifyGrid } from './helpers/helpers'
 import { rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver'
 import { applyDefinites } from './main'
 
@@ -16,9 +16,9 @@ describe('Orchestration functions', () => {
     const { applyDefinites } = main
 
     test('should populate grid where there is only one possibility for a cell', () => {
-      const possibleVals = getGridPossibleValues(gridHard)
+      const candidates = getGridCandidates(gridHard)
 
-      expect(stringifyGrid(applyDefinites(gridHard, possibleVals))).toMatchInlineSnapshot(`
+      expect(stringifyGrid(applyDefinites(gridHard, candidates))).toMatchInlineSnapshot(`
         "-------------------------------------------------------
         |     |     |     ❚     |  9  |  6  ❚     |  7  |     |
         -------------------------------------------------------
@@ -73,8 +73,8 @@ describe('Orchestration functions', () => {
   describe('fillCellsBruteForce', () => {
     const { fillCellsBruteForce } = main
 
-    const possibleValsGrid = rowAndColBoxIntersections(getGridPossibleValues(grid))
-    const partiallySolvedGrid = applyDefinites(grid, possibleValsGrid)
+    const candidatesGrid = rowAndColBoxIntersections(getGridCandidates(grid))
+    const partiallySolvedGrid = applyDefinites(grid, candidatesGrid)
 
     // just printing for reference
     expect(stringifyGrid(partiallySolvedGrid)).toMatchInlineSnapshot(`
