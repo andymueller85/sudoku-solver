@@ -146,6 +146,7 @@ export function run() {
     recursiveIterations = bruteForceResults.iterations
     console.log('\nAfter brute force recursion')
     finalGrid && printGrid(finalGrid)
+    console.log('\n😎🧩 Puzzle Solved 🧩😎')
     t3 = Date.now()
   }
 
