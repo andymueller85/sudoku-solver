@@ -1,14 +1,22 @@
-import { Grid, CandidatesGrid, CandidatesRow, Row } from '../types'
+import {
+  Grid,
+  CandidatesGrid,
+  CandidatesRow,
+  Row,
+  SudokuNumber,
+  SudokuNumberOrEmpty
+} from '../types'
 
 export const GRID_SIZE = 9
-export const sudokuNums = '123456789'.split('')
+export const sudokuNums: Array<SudokuNumber> = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+export const validCells: Array<SudokuNumberOrEmpty> = [...sudokuNums, '.']
 export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
 
 export const boxIndexes = [0, 3, 6]
 export const miniGridIndexes = [0, 1, 2]
 
 //************** General helper fns ****************/
-export function isFilled(cell: string) {
+export function isFilled(cell: SudokuNumberOrEmpty): cell is SudokuNumber {
   return cell !== '.'
 }
 
@@ -119,11 +127,19 @@ export function printGrid(grid: Grid) {
   console.log(stringifyGrid(grid))
 }
 
+export function isGrid(grid: string[][]): grid is Grid {
+  return grid.every(r => r.every(c => (validCells as string[]).includes(c)))
+}
+
 export function seedGrid(input: string): Grid {
-  return input
+  const grid = input
     .split(/\r?\n/)
     .filter(r => r)
     .map(r => [...r])
+
+  if (isGrid(grid)) return grid
+
+  throw 'bad input'
 }
 
 export function getGridCandidates(grid: Grid): CandidatesGrid {
@@ -225,13 +241,13 @@ export function columnNeighborsAreFilled(grid: Grid, curRow: number, curCol: num
   return rowNeighborsAreFilled(swapXY(grid), curCol, curRow)
 }
 
-export function rowNeighborsContainNumber(grid: Grid, curRow: number, num: string) {
+export function rowNeighborsContainNumber(grid: Grid, curRow: number, num: SudokuNumber) {
   return getBoxIndexes(getBoxTopLeft(curRow))
     .filter(r => r !== curRow)
     .every(r => getFilledNums(grid[r]).includes(num))
 }
 
-export function columnNeighborsContainNumber(grid: Grid, curCol: number, num: string) {
+export function columnNeighborsContainNumber(grid: Grid, curCol: number, num: SudokuNumber) {
   return getBoxIndexes(getBoxTopLeft(curCol))
     .filter(c => c !== curCol)
     .every(c => getColumnFilledNums(grid, c).includes(num))
@@ -246,7 +262,7 @@ export function getCellCandidates(grid: Grid, rowNum: number, colNum: number) {
 }
 
 //************** Filled Nums fns ****************/
-export function getFilledNums(arr: Array<string>) {
+export function getFilledNums(arr: Array<SudokuNumberOrEmpty>) {
   return arr.filter(isFilled)
 }
 
@@ -255,7 +271,7 @@ export function getColumnFilledNums(grid: Grid, colNum: number) {
 }
 
 //************** Missing Nums fns ****************/
-export function getMissingNums(arr: Array<string>) {
+export function getMissingNums(arr: Array<SudokuNumberOrEmpty>) {
   return sudokuNums.filter(n => !getFilledNums(arr).includes(n))
 }
 

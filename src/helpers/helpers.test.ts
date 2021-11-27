@@ -2,6 +2,7 @@ import fs from 'fs'
 import lodash from 'lodash'
 import * as helpers from './helpers'
 import { fillCellsLogically } from '../main'
+import { Grid, Row, SudokuNumber } from '../types'
 
 const { cloneDeep } = lodash
 const { seedGrid, stringifyGrid } = helpers
@@ -9,23 +10,28 @@ const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)
 
 const firstBoxCompleteGrid = grid.map((r, rowI) =>
-  r.map((c, colI) => (rowI < 3 && colI < 3 ? `${rowI * 3 + colI + 1}` : c))
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? (`${rowI * 3 + colI + 1}` as SudokuNumber) : c))
 )
 const allIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-const duplicatesInFirstRowGrid = grid.map((r, i) => (i === 0 ? r.map(_ => '1') : r))
-const firstRowEmptyGrid = grid.map((r, i) => (i === 0 ? r.map(_ => '.') : r))
-const firstRowCompleteGrid = grid.map((r, i) => (i === 0 ? r.map((_, idx) => `${idx + 1}`) : r))
-const firstColumnCompleteGrid = grid.map((r, i) => [`${i + 1}`, ...r.slice(1)])
-const firstColumnEmptyGrid = grid.map(r => ['.', ...r.slice(1)])
-const duplicatesInFirstColumnGrid = grid.map(r => ['1', ...r.slice(1)])
+const duplicatesInFirstRowGrid: Grid = grid.map((r, i) => (i === 0 ? r.map(_ => '1') : r))
+const firstRowEmptyGrid: Grid = grid.map((r, i) => (i === 0 ? r.map(_ => '.') : r))
+const firstRowCompleteGrid: Grid = grid.map((r, i) =>
+  i === 0 ? r.map((_, idx) => `${idx + 1}` as SudokuNumber) : r
+)
+const firstColumnCompleteGrid: Grid = grid.map((r, i) => [
+  `${i + 1}` as SudokuNumber,
+  ...r.slice(1)
+])
+const firstColumnEmptyGrid: Grid = grid.map(r => ['.', ...r.slice(1)])
+const duplicatesInFirstColumnGrid: Grid = grid.map(r => ['1', ...r.slice(1)])
 const firstBoxEmptyGrid = grid.map((r, rowI) =>
   r.map((c, colI) => (rowI < 3 && colI < 3 ? '.' : c))
 )
 const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
   r.map((c, colI) => (rowI < 3 && colI < 3 ? '1' : c))
 )
-const gridWithImpossibleCells = grid.map((r, i) =>
-  i === 4 ? r.map((c, idx) => `${idx === 0 ? '2' : c}`) : r
+const gridWithImpossibleCells: Grid = grid.map((r, i) =>
+  i === 4 ? r.map((c, idx) => `${idx === 0 ? '2' : c}` as SudokuNumber) : r
 )
 const solvedGrid = fillCellsLogically(grid).grid
 
@@ -527,9 +533,9 @@ describe('Missing cells functions', () => {
     const { getMissingCells } = helpers
 
     test.each([
-      ['12.456..9'.split(''), [2, 6, 7]],
-      ['.........'.split(''), [0, 1, 2, 3, 4, 5, 6, 7, 8]],
-      ['123456789'.split(''), []]
+      ['12.456..9'.split('') as Row, [2, 6, 7]],
+      ['.........'.split('') as Row, [0, 1, 2, 3, 4, 5, 6, 7, 8]],
+      ['123456789'.split('') as Row, []]
     ])('getMissingCells(%j) === %j', (arr, expected) => {
       expect(getMissingCells(arr)).toEqual(expected)
     })
@@ -593,7 +599,7 @@ describe('Validity functions', () => {
     })
 
     test('should return false if there are duplicates', () => {
-      expect(isValid('11234567'.split(''))).toBe(false)
+      expect(isValid('11234567'.split('') as Row)).toBe(false)
     })
   })
 

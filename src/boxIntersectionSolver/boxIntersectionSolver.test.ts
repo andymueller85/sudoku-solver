@@ -1,5 +1,6 @@
 import fs from 'fs'
 import { getGridCandidates, sudokuNums, seedGrid, stringifyGrid } from '../helpers/helpers'
+import { SudokuNumber } from '../types'
 import * as boxIntersectionSolver from './boxIntersectionSolver'
 
 const fileInput = fs.readFileSync('./input.txt', 'utf8')
@@ -11,15 +12,15 @@ describe('Box intersection solver functions', () => {
     const { getImpossibilities } = boxIntersectionSolver
 
     test('should return all numbers that do not appear in the possible vals array', () => {
-      expect(getImpossibilities(['12345'.split(''), '34567'.split('')])).toEqual('89'.split(''))
+      expect(getImpossibilities(['12345'.split('') as SudokuNumber[], '34567'.split('') as SudokuNumber[]])).toEqual('89'.split(''))
     })
 
     test('should work if empty arrays passed', () => {
-      expect(getImpossibilities([''.split(''), ''.split('')])).toEqual(sudokuNums)
+      expect(getImpossibilities([''.split('') as SudokuNumber[], ''.split('') as SudokuNumber[]])).toEqual(sudokuNums)
     })
 
     test('should return empty array if all numbers accounted for', () => {
-      expect(getImpossibilities(['12345'.split(''), '3456789'.split('')])).toEqual([])
+      expect(getImpossibilities(['12345'.split('') as SudokuNumber[], '3456789'.split('') as SudokuNumber[]])).toEqual([])
     })
   })
 

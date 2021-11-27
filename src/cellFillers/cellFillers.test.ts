@@ -1,6 +1,7 @@
 import fs from 'fs'
 import lodash from 'lodash'
 import { seedGrid, stringifyGrid } from '../helpers/helpers'
+import { SudokuNumber } from '../types'
 import * as cellFillers from './cellFillers'
 
 const { cloneDeep } = lodash
@@ -8,14 +9,16 @@ const fileInput = fs.readFileSync('./input.txt', 'utf8')
 const grid = seedGrid(fileInput)
 
 const firstBoxCompleteGrid = grid.map((r, rowI) =>
-  r.map((c, colI) => (rowI < 3 && colI < 3 ? `${rowI * 3 + colI + 1}` : c))
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? (`${rowI * 3 + colI + 1}` as SudokuNumber) : c))
 )
 
 describe('Cell-filling functions - rows and columns', () => {
   describe('cellCanBeDeterminedForRow', () => {
     const { cellCanBeDeterminedForRow } = cellFillers
     const gridWithFirstRowOneCellLeft = grid.map((r, rowIndex) =>
-      r.map((c, cIndex) => (rowIndex === 0 ? (cIndex > 0 ? `${cIndex + 1}` : '.') : c))
+      r.map((c, cIndex) =>
+        rowIndex === 0 ? (cIndex > 0 ? (`${cIndex + 1}` as SudokuNumber) : '.') : c
+      )
     )
 
     test('should return false if the box already contains the number', () => {

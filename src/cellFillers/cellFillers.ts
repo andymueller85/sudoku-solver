@@ -16,11 +16,16 @@ import {
   rowNeighborsContainNumber,
   swapXY
 } from '../helpers/helpers'
-import { Grid } from '../types'
+import { Grid, SudokuNumber } from '../types'
 
 const { cloneDeep } = lodash
 
-export function cellCanBeDeterminedForRow(grid: Grid, rowNum: number, colNum: number, num: string) {
+export function cellCanBeDeterminedForRow(
+  grid: Grid,
+  rowNum: number,
+  colNum: number,
+  num: SudokuNumber
+) {
   const rowMissingNums = getMissingNums(grid[rowNum])
   const columnMissingNums = getColumnMissingNums(grid, colNum)
 
@@ -61,7 +66,7 @@ export function cellCanBeDeterminedForBox(
   cell: number,
   topLeftRow: number,
   topLeftCol: number,
-  num: string
+  num: SudokuNumber
 ) {
   const curRow = getBoxCurRow(topLeftRow, cell)
   const curCol = getBoxCurColumn(topLeftCol, cell)
