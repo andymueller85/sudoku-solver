@@ -4,12 +4,13 @@ import {
   CandidatesRow,
   Row,
   SudokuNumber,
-  SudokuNumberOrEmpty
+  SudokuNumberOrEmpty,
+  EMPTY_CELL
 } from '../types'
 
 export const GRID_SIZE = 9
-export const sudokuNums: Array<SudokuNumber> = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
-export const validCells: Array<SudokuNumberOrEmpty> = [...sudokuNums, '.']
+export const sudokuNums: Array<SudokuNumber> = Object.values(SudokuNumber)
+export const validCells: Array<SudokuNumberOrEmpty> = [...sudokuNums, EMPTY_CELL]
 export const allIndexes = Array.from({ length: GRID_SIZE }, (_, i) => i)
 
 export const boxIndexes = [0, 3, 6]
@@ -17,7 +18,7 @@ export const miniGridIndexes = [0, 1, 2]
 
 //************** General helper fns ****************/
 export function isFilled(cell: SudokuNumberOrEmpty): cell is SudokuNumber {
-  return cell !== '.'
+  return cell !== EMPTY_CELL
 }
 
 export function getFilledCellCount(grid: Grid) {
@@ -139,7 +140,7 @@ export function seedGrid(input: string): Grid {
 
   if (isGrid(grid)) return grid
 
-  throw 'bad input'
+  throw new Error('bad input')
 }
 
 export function getGridCandidates(grid: Grid): CandidatesGrid {

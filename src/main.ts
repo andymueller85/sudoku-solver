@@ -76,7 +76,7 @@ export function fillCellsLogically(grid: Grid): GridWithMeta {
     /* istanbul ignore next */
     if (!gridIsValid(updatedGrid)) {
       printGrid(updatedGrid)
-      throw 'uh-oh'
+      throw new Error('uh-oh')
     }
 
     filledCellCount = getFilledCellCount(updatedGrid)

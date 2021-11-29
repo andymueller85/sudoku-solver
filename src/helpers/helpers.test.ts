@@ -2,7 +2,7 @@ import fs from 'fs'
 import lodash from 'lodash'
 import * as helpers from './helpers'
 import { fillCellsLogically } from '../main'
-import { Grid, Row, SudokuNumber } from '../types'
+import { EMPTY_CELL, Grid, Row, SudokuNumber } from '../types'
 
 const { cloneDeep } = lodash
 const { seedGrid, stringifyGrid } = helpers
@@ -13,8 +13,10 @@ const firstBoxCompleteGrid = grid.map((r, rowI) =>
   r.map((c, colI) => (rowI < 3 && colI < 3 ? (`${rowI * 3 + colI + 1}` as SudokuNumber) : c))
 )
 const allIndexes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-const duplicatesInFirstRowGrid: Grid = grid.map((r, i) => (i === 0 ? r.map(_ => '1') : r))
-const firstRowEmptyGrid: Grid = grid.map((r, i) => (i === 0 ? r.map(_ => '.') : r))
+const duplicatesInFirstRowGrid: Grid = grid.map((r, i) =>
+  i === 0 ? r.map(_ => SudokuNumber.ONE) : r
+)
+const firstRowEmptyGrid: Grid = grid.map((r, i) => (i === 0 ? r.map(_ => EMPTY_CELL) : r))
 const firstRowCompleteGrid: Grid = grid.map((r, i) =>
   i === 0 ? r.map((_, idx) => `${idx + 1}` as SudokuNumber) : r
 )
@@ -22,16 +24,16 @@ const firstColumnCompleteGrid: Grid = grid.map((r, i) => [
   `${i + 1}` as SudokuNumber,
   ...r.slice(1)
 ])
-const firstColumnEmptyGrid: Grid = grid.map(r => ['.', ...r.slice(1)])
-const duplicatesInFirstColumnGrid: Grid = grid.map(r => ['1', ...r.slice(1)])
+const firstColumnEmptyGrid: Grid = grid.map(r => [EMPTY_CELL, ...r.slice(1)])
+const duplicatesInFirstColumnGrid: Grid = grid.map(r => [SudokuNumber.ONE, ...r.slice(1)])
 const firstBoxEmptyGrid = grid.map((r, rowI) =>
-  r.map((c, colI) => (rowI < 3 && colI < 3 ? '.' : c))
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? EMPTY_CELL : c))
 )
 const duplicatesInFirstBoxGrid = grid.map((r, rowI) =>
-  r.map((c, colI) => (rowI < 3 && colI < 3 ? '1' : c))
+  r.map((c, colI) => (rowI < 3 && colI < 3 ? SudokuNumber.ONE : c))
 )
 const gridWithImpossibleCells: Grid = grid.map((r, i) =>
-  i === 4 ? r.map((c, idx) => `${idx === 0 ? '2' : c}` as SudokuNumber) : r
+  i === 4 ? r.map((c, idx) => `${idx === 0 ? SudokuNumber.TWO : c}` as SudokuNumber) : r
 )
 const solvedGrid = fillCellsLogically(grid).grid
 
@@ -40,11 +42,11 @@ describe('General helper functions', () => {
     const { isFilled } = helpers
 
     test('should return true if cell is not empty', () => {
-      expect(isFilled('1')).toBe(true)
+      expect(isFilled(SudokuNumber.ONE)).toBe(true)
     })
 
     test('should return false if cell is empty', () => {
-      expect(isFilled('.')).toBe(false)
+      expect(isFilled(EMPTY_CELL)).toBe(false)
     })
   })
 
@@ -402,11 +404,11 @@ describe('Box helper functions', () => {
     const { rowNeighborsContainNumber } = helpers
 
     test('should return true if for a given row, all other rows that intersect the same box contain the number', () => {
-      expect(rowNeighborsContainNumber(grid, 0, '6')).toBe(true)
+      expect(rowNeighborsContainNumber(grid, 0, SudokuNumber.SIX)).toBe(true)
     })
 
     test('should return false otherwise', () => {
-      expect(rowNeighborsContainNumber(grid, 0, '2')).toBe(false)
+      expect(rowNeighborsContainNumber(grid, 0, SudokuNumber.TWO)).toBe(false)
     })
   })
 
@@ -414,11 +416,11 @@ describe('Box helper functions', () => {
     const { columnNeighborsContainNumber } = helpers
 
     test('should return true if for a given column, all other columns that intersect the same box contain the number', () => {
-      expect(columnNeighborsContainNumber(grid, 0, '1')).toBe(true)
+      expect(columnNeighborsContainNumber(grid, 0, SudokuNumber.ONE)).toBe(true)
     })
 
     test('should return false otherwise', () => {
-      expect(columnNeighborsContainNumber(grid, 0, '4')).toBe(false)
+      expect(columnNeighborsContainNumber(grid, 0, SudokuNumber.FOUR)).toBe(false)
     })
   })
 
@@ -716,7 +718,7 @@ describe('Validity functions', () => {
 
       test('should return false if all cells are filled, but invalid', () => {
         const invalidSolvedGrid = cloneDeep(solvedGrid)
-        invalidSolvedGrid[8][8] = '2'
+        invalidSolvedGrid[8][8] = SudokuNumber.TWO
 
         expect(gridIsComplete(invalidSolvedGrid)).toBe(false)
       })
