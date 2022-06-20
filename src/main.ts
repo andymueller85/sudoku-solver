@@ -152,7 +152,7 @@ export function run() {
 
   console.log('\nStats:')
   console.log('Starting boxes:', getFilledCellCount(startingGrid))
-  console.log('Logic Iterations', iterations)
+  console.log('Logic Iterations:', iterations)
   console.log('After logically filling cells:', getFilledCellCount(logicallyFilledGrid))
   console.log('Logic time:', t2 - t1, 'ms')
   if (recursiveIterations) console.log('Brute force iterations:', recursiveIterations)
