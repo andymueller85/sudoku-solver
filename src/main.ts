@@ -21,7 +21,7 @@ import { Grid, GridWithMeta, CandidatesGrid } from './types'
 const { cloneDeep } = lodash
 const DEBUG = false
 
-const inputName = 'input_4.txt'
+const inputName = 'input_daily_extra_20201209.txt'
 const fileInput = fs.readFileSync(`./${inputName}`, 'utf8')
 
 /* istanbul ignore next */
