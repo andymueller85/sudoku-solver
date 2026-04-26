@@ -137,84 +137,89 @@ export function fillCellsBruteForce(grid: Grid): GridWithMeta {
 
 /* istanbul ignore next */
 export async function run() {
-  const files = fs.readdirSync('.').filter(f => f.endsWith('.txt'))
+  while (true) {
+    const files = fs.readdirSync('.').filter(f => f.endsWith('.txt'))
 
-  const response = await prompts({
-    type: 'select',
-    name: 'inputType',
-    message: 'How would you like to input the Sudoku puzzle?',
-    choices: [
-      { title: 'Select a text file', value: 'file' },
-      { title: 'Enter an 81-character string', value: 'string' }
-    ]
-  })
-
-  let inputData = ''
-  let inputName = ''
-
-  if (response.inputType === 'file') {
-    const fileResponse = await prompts({
+    const response = await prompts({
       type: 'select',
-      name: 'inputFile',
-      message: 'Which file?',
-      choices: files.map(file => ({ title: file, value: file }))
+      name: 'inputType',
+      message: 'How would you like to input the Sudoku puzzle?',
+      choices: [
+        { title: 'Select a text file', value: 'file' },
+        { title: 'Enter an 81-character string', value: 'string' },
+        { title: 'Exit', value: 'exit' }
+      ]
     })
 
-    inputName = fileResponse.inputFile
+    let inputData = ''
+    let inputName = ''
 
-    if (!inputName) {
-      return // user cancelled
+    if (response.inputType === 'file') {
+      const fileResponse = await prompts({
+        type: 'select',
+        name: 'inputFile',
+        message: 'Which file?',
+        choices: files.map(file => ({ title: file, value: file }))
+      })
+
+      inputName = fileResponse.inputFile
+
+      if (!inputName) {
+        return // user cancelled
+      }
+
+      inputData = fs.readFileSync(`./${inputName}`, 'utf8')
+    } else if (response.inputType === 'string') {
+      const stringResponse = await prompts({
+        type: 'text',
+        name: 'inputString',
+        message: 'Enter the 81-character Sudoku string:'
+      })
+
+      inputName = 'Manual String Input'
+      inputData = stringResponse.inputString
+
+      if (!inputData) {
+        return
+      }
+    } else {
+      return // user cancelled or chose exit
     }
 
-    inputData = fs.readFileSync(`./${inputName}`, 'utf8')
-  } else if (response.inputType === 'string') {
-    const stringResponse = await prompts({
-      type: 'text',
-      name: 'inputString',
-      message: 'Enter the 81-character Sudoku string:'
-    })
+    const t1 = Date.now()
+    const startingGrid = seedGrid(inputData)
+    console.log('Input Name:', inputName)
+    console.log('\nStarting Grid')
+    printGrid(startingGrid)
 
-    inputName = 'Manual String Input'
-    inputData = stringResponse.inputString
+    const { grid: logicallyFilledGrid, iterations } = fillCellsLogically(startingGrid)
+    console.log('\nAfter logically filling cells:')
+    printGrid(logicallyFilledGrid)
+    const t2 = Date.now()
 
-    if (!inputData) {
-      return
+    let recursiveIterations = undefined
+    let t3 = undefined
+    if (gridIsComplete(logicallyFilledGrid)) {
+      console.log('\n😎🧩 Puzzle Solved 🧩😎')
+    } else {
+      console.log('\n🕵️‍♀️🧩 Still some work to do... 🧩🕵️‍♀️')
+      const bruteForceResults = fillCellsBruteForce(logicallyFilledGrid)
+      const finalGrid = bruteForceResults.grid
+      recursiveIterations = bruteForceResults.iterations
+      console.log('\nAfter brute force recursion')
+      finalGrid && printGrid(finalGrid)
+      console.log('\n😎🧩 Puzzle Solved 🧩😎')
+      t3 = Date.now()
     }
-  } else {
-    return // user cancelled
+
+    console.log('\nStats:')
+    console.log('Starting boxes:', getFilledCellCount(startingGrid))
+    console.log('Logic Iterations:', iterations)
+    console.log('After logically filling cells:', getFilledCellCount(logicallyFilledGrid))
+    console.log('Logic time:', t2 - t1, 'ms')
+    if (recursiveIterations) console.log('Brute force iterations:', recursiveIterations)
+    if (t3) console.log('Brute force time:', t3 - t2, 'ms')
+    
+    console.log('\n-------------------------------------------------------\n')
   }
-
-  const t1 = Date.now()
-  const startingGrid = seedGrid(inputData)
-  console.log('Input Name:', inputName)
-  console.log('\nStarting Grid')
-  printGrid(startingGrid)
-
-  const { grid: logicallyFilledGrid, iterations } = fillCellsLogically(startingGrid)
-  console.log('\nAfter logically filling cells:')
-  printGrid(logicallyFilledGrid)
-  const t2 = Date.now()
-
-  let recursiveIterations = undefined
-  let t3 = undefined
-  if (gridIsComplete(logicallyFilledGrid)) {
-    console.log('\n😎🧩 Puzzle Solved 🧩😎')
-  } else {
-    console.log('\n🕵️‍♀️🧩 Still some work to do... 🧩🕵️‍♀️')
-    const bruteForceResults = fillCellsBruteForce(logicallyFilledGrid)
-    const finalGrid = bruteForceResults.grid
-    recursiveIterations = bruteForceResults.iterations
-    console.log('\nAfter brute force recursion')
-    finalGrid && printGrid(finalGrid)
-    console.log('\n😎🧩 Puzzle Solved 🧩😎')
-    t3 = Date.now()
-  }
-
-  console.log('\nStats:')
-  console.log('Starting boxes:', getFilledCellCount(startingGrid))
-  console.log('Logic Iterations:', iterations)
-  console.log('After logically filling cells:', getFilledCellCount(logicallyFilledGrid))
-  console.log('Logic time:', t2 - t1, 'ms')
-  if (recursiveIterations) console.log('Brute force iterations:', recursiveIterations)
-  if (t3) console.log('Brute force time:', t3 - t2, 'ms')
 }
