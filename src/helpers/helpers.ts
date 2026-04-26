@@ -133,7 +133,16 @@ export function isGrid(grid: string[][]): grid is Grid {
 }
 
 export function seedGrid(input: string): Grid {
-  const grid = input
+  const cleanInput = input.trim()
+
+  // If it's an 81-character string, chunk it into rows
+  if (cleanInput.length === 81 && !cleanInput.includes('\n')) {
+    const rows = cleanInput.match(/.{1,9}/g)!
+    const grid = rows.map(r => [...r])
+    if (isGrid(grid)) return grid
+  }
+
+  const grid = cleanInput
     .split(/\r?\n/)
     .filter(r => r)
     .map(r => [...r])

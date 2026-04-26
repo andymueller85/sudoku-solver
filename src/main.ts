@@ -1,14 +1,13 @@
 import fs from 'fs'
 import lodash from 'lodash'
+import prompts from 'prompts'
 import { rowAndColBoxIntersections } from './boxIntersectionSolver/boxIntersectionSolver'
 import { processMatchingSets } from './matchingSetsSolver/matchingSetsSolver'
 import { fillBoxes, fillColumns, fillRows } from './cellFillers/cellFillers'
 import {
   getFilledCellCount,
   getGridCandidates,
-  getNextEmptyCellCoordinates,
   getCellCandidates,
-  gridHasAnyDeadEnds,
   gridIsComplete,
   gridIsValid,
   isFilled,
@@ -16,13 +15,10 @@ import {
   seedGrid,
   stringifyGrid
 } from './helpers/helpers'
-import { Grid, GridWithMeta, CandidatesGrid } from './types'
+import { Grid, GridWithMeta, CandidatesGrid, EMPTY_CELL } from './types'
 
 const { cloneDeep } = lodash
 const DEBUG = false
-
-const inputName = process.argv[4] || 'input.txt'
-const fileInput = fs.readFileSync(`./${inputName}`, 'utf8')
 
 /* istanbul ignore next */
 function log(grid: Grid, loopCount: number, msg: string) {
@@ -87,45 +83,109 @@ export function fillCellsLogically(grid: Grid): GridWithMeta {
 
 export function fillCellsBruteForce(grid: Grid): GridWithMeta {
   if (gridIsComplete(grid)) return { grid, iterations: 0 }
-  let finalGrid: Grid | undefined = undefined
   let count = 0
 
-  function goToNext(g: Grid, r: number, c: number): void {
-    const nextCoordinates = getNextEmptyCellCoordinates(g, r, c)
+  // We operate on a single mutable clone for the entire backtracking process
+  const myGrid = cloneDeep(grid)
 
-    if (!nextCoordinates) {
-      finalGrid = g
-    } else if (!finalGrid) {
-      recurse(g, nextCoordinates[0], nextCoordinates[1])
-    }
-  }
+  function recurse(): boolean {
+    count++
 
-  function recurse(myGrid: Grid, curRow: number = 0, curCol: number = 0): void {
-    /* istanbul ignore next */
-    if (++count % 1000 === 0) console.log(`\n${count}`, `\n${stringifyGrid(myGrid)}`)
-    const curGrid = cloneDeep(myGrid)
+    let emptyRow = -1
+    let emptyCol = -1
+    let found = false
 
-    if (!isFilled(curGrid[curRow][curCol])) {
-      getCellCandidates(curGrid, curRow, curCol).forEach(candidate => {
-        curGrid[curRow][curCol] = candidate
-
-        if (!gridHasAnyDeadEnds(curGrid)) {
-          goToNext(curGrid, curRow, curCol)
+    // Find the next empty cell
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (!isFilled(myGrid[r][c])) {
+          emptyRow = r
+          emptyCol = c
+          found = true
+          break
         }
-      })
-    } else {
-      goToNext(curGrid, curRow, curCol)
+      }
+      if (found) break
     }
+
+    // If no empty cells are found, the puzzle is solved
+    if (!found) {
+      return true
+    }
+
+    const candidates = getCellCandidates(myGrid, emptyRow, emptyCol)
+
+    for (const candidate of candidates) {
+      myGrid[emptyRow][emptyCol] = candidate
+
+      // Recurse deeper
+      if (recurse()) {
+        return true
+      }
+
+      // Backtrack! Undo the move
+      myGrid[emptyRow][emptyCol] = EMPTY_CELL
+    }
+
+    // If no candidates work, this branch fails
+    return false
   }
 
-  recurse(grid)
-  return { grid: finalGrid || grid, iterations: count }
+  recurse()
+  return { grid: myGrid, iterations: count }
 }
 
 /* istanbul ignore next */
-export function run() {
+export async function run() {
+  const files = fs.readdirSync('.').filter(f => f.endsWith('.txt'))
+
+  const response = await prompts({
+    type: 'select',
+    name: 'inputType',
+    message: 'How would you like to input the Sudoku puzzle?',
+    choices: [
+      { title: 'Select a text file', value: 'file' },
+      { title: 'Enter an 81-character string', value: 'string' }
+    ]
+  })
+
+  let inputData = ''
+  let inputName = ''
+
+  if (response.inputType === 'file') {
+    const fileResponse = await prompts({
+      type: 'select',
+      name: 'inputFile',
+      message: 'Which file?',
+      choices: files.map(file => ({ title: file, value: file }))
+    })
+
+    inputName = fileResponse.inputFile
+
+    if (!inputName) {
+      return // user cancelled
+    }
+
+    inputData = fs.readFileSync(`./${inputName}`, 'utf8')
+  } else if (response.inputType === 'string') {
+    const stringResponse = await prompts({
+      type: 'text',
+      name: 'inputString',
+      message: 'Enter the 81-character Sudoku string:'
+    })
+
+    inputName = 'Manual String Input'
+    inputData = stringResponse.inputString
+
+    if (!inputData) {
+      return
+    }
+  } else {
+    return // user cancelled
+  }
+
   const t1 = Date.now()
-  const startingGrid = seedGrid(fileInput)
+  const startingGrid = seedGrid(inputData)
   console.log('Input Name:', inputName)
   console.log('\nStarting Grid')
   printGrid(startingGrid)
